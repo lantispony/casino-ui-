@@ -1,0 +1,424 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { games, banners, userStats, dailyRewards, missions } from '../data/games';
+import WinAnimation from '../components/animations/WinAnimation';
+import CoinRain from '../components/animations/CoinRain';
+import Beams from '../components/animations/Beams';
+
+export default function Lobby() {
+  const [currentBanner, setCurrentBanner] = useState(0);
+  const [showWin, setShowWin] = useState(false);
+  const [showCoins, setShowCoins] = useState(false);
+  const [jackpot, setJackpot] = useState(12847392);
+
+  // 暫停輪播，只顯示第一張 Banner
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setJackpot((prev) => prev + Math.floor(Math.random() * 100));
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const triggerWin = () => {
+    setShowWin(true);
+    setShowCoins(true);
+    setTimeout(() => setShowCoins(false), 4000);
+  };
+
+  return (
+    <div style={{ padding: '24px 32px 50px', maxWidth: 1400, margin: '0 auto' }}>
+      <WinAnimation show={showWin} amount={88888} onComplete={() => setShowWin(false)} />
+      <CoinRain active={showCoins} />
+
+      {/* === JACKPOT TICKER === */}
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        style={{
+          display: 'flex', justifyContent: 'center', marginBottom: 24,
+        }}
+      >
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 20,
+          background: 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,69,0,0.04))',
+          border: '1px solid rgba(255,215,0,0.2)', borderRadius: 16,
+          padding: '14px 32px', backdropFilter: 'blur(10px)',
+        }}>
+          <div style={{ fontSize: 32, animation: 'float 2s ease-in-out infinite' }}>🎰</div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ color: '#666', fontSize: 10, letterSpacing: 4, fontWeight: 600 }}>PROGRESSIVE JACKPOT</div>
+            <motion.div
+              key={jackpot}
+              initial={{ scale: 1.05 }}
+              animate={{ scale: 1 }}
+              className="jackpot-text"
+              style={{ fontSize: 36, fontWeight: 900, letterSpacing: 2 }}
+            >
+              ${jackpot.toLocaleString()}
+            </motion.div>
+          </div>
+          <button onClick={triggerWin} style={{
+            background: 'linear-gradient(135deg, #FF4500, #FF0000)',
+            color: '#fff', fontWeight: 800, fontSize: 12, letterSpacing: 1,
+            padding: '10px 22px', borderRadius: 10, border: 'none',
+            boxShadow: '0 0 20px rgba(255,69,0,0.4)',
+            transition: 'all 0.3s', cursor: 'pointer',
+          }}>
+            DEMO WIN ▶
+          </button>
+            </div>
+            {/* Indicators */}
+            <div style={{
+              position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', gap: 8, zIndex: 3,
+            }}>
+              {banners.map((_, i) => (
+                <div key={i} onClick={() => setCurrentBanner(i)} style={{
+                  height: 8, borderRadius: 4, cursor: 'pointer', transition: 'all 0.3s',
+                  background: i === currentBanner ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
+                  width: i === currentBanner ? 28 : 8,
+                }} />
+              ))}
+            </div>
+          </motion.div>
+
+      {/* === HERO BANNER === */}
+      <section style={{ marginBottom: 30, position: 'relative' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentBanner}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: 'relative', height: 380, borderRadius: 24, overflow: 'hidden',
+              background: currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
+              display: 'flex', alignItems: 'center', padding: '0 60px',
+            }}
+          >
+            {currentBanner === 0 && (
+              <div style={{ position: 'absolute', inset: 0 }}>
+              <Beams
+                beamWidth={3}
+                beamHeight={50}
+                beamNumber={48}
+                lightColor="#ffcf57"
+                speed={3.1}
+                noiseIntensity={0.25}
+                scale={0.3}
+                rotation={45}
+                lightIntensity={3}
+              />
+              </div>
+            )}
+            <div style={{ position: 'relative', zIndex: 1, maxWidth: 600 }}>
+              <div style={{
+                display: 'inline-block', padding: '4px 16px', borderRadius: 20,
+                background: 'linear-gradient(135deg, #FF4500, #FF0000)', color: '#fff',
+                fontSize: 10, fontWeight: 800, letterSpacing: 2, marginBottom: 16,
+              }}>
+                {banners[currentBanner].tag}
+              </div>
+              <motion.h1
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="jackpot-text"
+                style={{ fontSize: 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1 }}
+              >
+                {banners[currentBanner].title}
+              </motion.h1>
+              <motion.p
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.35 }}
+                style={{ color: '#ccc', fontSize: 18, marginBottom: 24 }}
+              >
+                {banners[currentBanner].subtitle}
+              </motion.p>
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                <Link to="/events"
+                  className="btn-primary"
+                  style={{ display: 'inline-block', padding: '14px 36px', fontSize: 15, letterSpacing: 1, textDecoration: 'none' }}
+                >
+                  CLAIM BONUS →
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: 24,
+            border: '1px solid rgba(255,215,0,0.2)',
+            pointerEvents: 'none', zIndex: 10,
+          }} />
+        </AnimatePresence>
+
+        {/* Image - outside overflow:hidden card to allow top/right bleed */}
+        {currentBanner === 0 && (
+          <>
+          <div style={{
+            position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
+            overflow: 'hidden',             zIndex: 11, pointerEvents: 'none',
+            WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+            WebkitMaskComposite: 'intersect',
+            maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+            maskComposite: 'intersect',
+          }}>
+            <img src="/images/gold_black_025.png" alt=""
+              style={{
+                position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
+                objectFit: 'cover', objectPosition: 'top right',
+              }} />
+          </div>
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
+            borderRadius: '0 0 24px 24px',
+            background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
+            pointerEvents: 'none', zIndex: 3,
+          }} />
+          </>
+        )}
+      </section>
+
+      {/* === QUICK STATS === */}
+      <section style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 32,
+      }}>
+        {[
+          { icon: '⭐', label: 'YOUR STATUS', value: userStats.level, glow: 'var(--glow-gold)' },
+          { icon: '💰', label: 'BALANCE', value: `$${userStats.balance.toLocaleString()}`, glow: 'var(--glow-gold)' },
+          { icon: '📈', label: "TODAY'S PROFIT", value: `+$${userStats.todayProfit.toLocaleString()}`, color: '#00FF7F' },
+          { icon: '🎯', label: 'DAILY REWARD', value: 'CLAIM →', link: '/rewards' },
+        ].map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,215,0,0.04), transparent)',
+              border: '1px solid rgba(255,215,0,0.12)', borderRadius: 14, padding: '18px 20px',
+              display: 'flex', alignItems: 'center', gap: 16,
+              boxShadow: s.glow || 'none',
+            }}
+          >
+            <span style={{ fontSize: 28 }}>{s.icon}</span>
+            <div>
+              <div style={{ color: '#666', fontSize: 9, letterSpacing: 2, fontWeight: 600 }}>{s.label}</div>
+              {s.link ? (
+                <Link to={s.link} style={{
+                  color: 'var(--gold)', fontSize: 16, fontWeight: 800, textDecoration: 'none',
+                  animation: 'pulse-glow 2s ease-in-out infinite',
+                }}>
+                  {s.value}
+                </Link>
+              ) : (
+                <div style={{ color: s.color || '#fff', fontSize: 18, fontWeight: 800 }}>
+                  {s.value}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* === GAME GRID === */}
+      <section style={{ marginBottom: 40 }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20,
+        }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: 1 }}>
+            🎮 GAMES
+          </h2>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {['ALL', 'SLOTS', 'TABLE', 'LOTTERY'].map((t) => (
+              <button key={t} style={{
+                background: t === 'ALL' ? 'rgba(255,215,0,0.15)' : 'transparent',
+                color: t === 'ALL' ? 'var(--gold)' : '#666',
+                border: t === 'ALL' ? '1px solid rgba(255,215,0,0.3)' : '1px solid transparent',
+                borderRadius: 8, padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                letterSpacing: 1, transition: 'all 0.3s',
+              }}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16,
+        }}>
+          {games.map((game, i) => (
+            <motion.div
+              key={game.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              whileHover={{ y: -6, scale: 1.01 }}
+            >
+              <Link to={`/game/${game.id}`} style={{
+                display: 'flex', alignItems: 'center', gap: 18, textDecoration: 'none',
+                background: 'linear-gradient(135deg, #1A1A1A, #111)',
+                border: '1px solid rgba(255,215,0,0.12)',
+                borderRadius: 16, padding: '22px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
+              }}>
+                {/* Hover glow */}
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: 16,
+                  background: 'radial-gradient(ellipse at 50% 100%, rgba(255,215,0,0.03) 0%, transparent 60%)',
+                  pointerEvents: 'none',
+                }} />
+
+                <div style={{
+                  fontSize: 42, flexShrink: 0, width: 60, textAlign: 'center',
+                  filter: 'drop-shadow(0 0 10px rgba(255,215,0,0.3))',
+                }}>
+                  {game.icon}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>{game.name}</span>
+                    {game.popular && (
+                      <span style={{
+                        fontSize: 9, fontWeight: 800, background: 'linear-gradient(135deg, #FF4500, #FF0000)',
+                        color: '#fff', padding: '2px 10px', borderRadius: 10, letterSpacing: 1,
+                      }}>
+                        HOT
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ color: 'var(--gold)', fontSize: 10, fontWeight: 600, letterSpacing: 2, marginBottom: 4 }}>
+                    {game.tagline}
+                  </div>
+                  <div style={{ color: '#777', fontSize: 12, lineHeight: 1.4 }}>{game.description}</div>
+                </div>
+
+                <div style={{
+                  fontSize: 20, color: 'var(--gold)', flexShrink: 0,
+                  opacity: 0.5, transition: 'all 0.3s',
+                }}>
+                  ▶
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* === META SYSTEMS ROW === */}
+      <section style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 40,
+      }}>
+        {[
+          { path: '/rewards', icon: '📅', title: 'DAILY REWARDS', sub: 'Check in & collect', color: '#FFD700' },
+          { path: '/vip', icon: '⭐', title: 'VIP CLUB', sub: 'Exclusive perks', color: '#FF8C00' },
+          { path: '/season-pass', icon: '🎫', title: 'SEASON PASS', sub: 'Season 3 active', color: '#00BFFF' },
+          { path: '/shop', icon: '🛒', title: 'SHOP', sub: 'Coins & bundles', color: '#00FF7F' },
+          { path: '/missions', icon: '🎯', title: 'MISSIONS', sub: `${missions.filter(m => m.progress >= m.total).length}/${missions.length} done`, color: '#9B30FF' },
+          { path: '/rankings', icon: '🏆', title: 'LEADERBOARD', sub: 'Top players', color: '#FFD700' },
+          { path: '/guilds', icon: '⚔️', title: 'GUILDS', sub: 'Join a crew', color: '#FF4500' },
+          { path: '/events', icon: '🎉', title: 'EVENTS', sub: 'Limited time', color: '#FF69B4' },
+        ].map((item) => (
+          <motion.div key={item.path} whileHover={{ y: -4 }}>
+            <Link to={item.path} style={{
+              display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none',
+              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,215,0,0.08)',
+              borderRadius: 12, padding: '16px 18px', transition: 'all 0.3s',
+            }}>
+              <span style={{
+                fontSize: 24, filter: `drop-shadow(0 0 6px ${item.color}44)`,
+              }}>
+                {item.icon}
+              </span>
+              <div>
+                <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: 11 }}>{item.sub}</div>
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* === PLATFORM HIGHLIGHTS === */}
+      <section style={{
+        background: 'linear-gradient(135deg, #0A0A0A, #111)',
+        border: '1px solid rgba(255,215,0,0.1)', borderRadius: 20, padding: '50px 40px',
+        marginBottom: 30, position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 80% 30%, rgba(255,215,0,0.04) 0%, transparent 60%)',
+        }} />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 36 }}>
+          <h2 className="shimmer-text" style={{ fontSize: 28, fontWeight: 900, letterSpacing: 2, marginBottom: 8 }}>
+            WHY CHOOSE MONARCH?
+          </h2>
+          <p style={{ color: '#777', fontSize: 14 }}>The ultimate premium casino experience</p>
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20,
+          position: 'relative', zIndex: 1,
+        }}>
+          {[
+            { icon: '💎', title: 'PREMIUM DESIGN', desc: 'Cinematic visuals with ultra-premium gold aesthetic' },
+            { icon: '🎰', title: 'BIGGEST JACKPOTS', desc: 'Progressive prizes that keep growing every second' },
+            { icon: '⚡', title: 'INSTANT REWARDS', desc: 'Real-time win animations with spectacular effects' },
+            { icon: '💎', title: 'VIP EXPERIENCE', desc: 'Exclusive tiers with massive cashback & bonuses' },
+          ].map((f) => (
+            <div key={f.title} style={{
+              textAlign: 'center', padding: '24px 16px',
+              background: 'rgba(255,255,255,0.02)', borderRadius: 14,
+              border: '1px solid rgba(255,215,0,0.06)',
+            }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>{f.icon}</div>
+              <div style={{ color: 'var(--gold)', fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{f.title}</div>
+              <div style={{ color: '#666', fontSize: 12, lineHeight: 1.5 }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* === CTA === */}
+      <section style={{
+        background: 'linear-gradient(135deg, #1A0A00, #2D1A00, #1A0A00)',
+        border: '1px solid rgba(255,215,0,0.2)', borderRadius: 20,
+        padding: '50px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, rgba(255,215,0,0.06) 0%, transparent 60%)',
+        }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h2 className="jackpot-text" style={{ fontSize: 36, fontWeight: 900, marginBottom: 8 }}>
+            READY TO WIN BIG?
+          </h2>
+          <p style={{ color: '#999', fontSize: 15, marginBottom: 28, maxWidth: 500, margin: '0 auto 28px' }}>
+            Join thousands of players experiencing the thrill of MONARCH CASINO
+          </p>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+            <Link to="/deposit" className="btn-primary" style={{
+              padding: '16px 40px', fontSize: 16, letterSpacing: 1, textDecoration: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+            }}>
+              💰 DEPOSIT NOW
+            </Link>
+            <Link to="/events" style={{
+              background: 'transparent', color: 'var(--gold)', fontWeight: 700,
+              padding: '16px 40px', borderRadius: 10, fontSize: 14,
+              border: '1px solid rgba(255,215,0,0.3)', textDecoration: 'none',
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+            }}>
+              🎉 VIEW EVENTS
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

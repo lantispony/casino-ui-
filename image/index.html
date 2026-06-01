@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPINWIN - 首頁展示預覽</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #0b0b0b;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .wrapper {
+            width: 100%;
+            max-width: 912px;
+            background-color: #000000;
+            position: relative;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.15);
+        }
+        .section-block {
+            width: 100%;
+            position: relative;
+            display: block;
+            line-height: 0;
+        }
+        .section-block img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* 增加可互動的隱形點擊區域，給客戶展示用 */
+        .clickable-overlay {
+            position: absolute;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .clickable-overlay:hover {
+            background: rgba(255, 215, 0, 0.08);
+        }
+
+        /* 累積獎金動態特效覆蓋層 */
+        .jackpot-counter-layer {
+            position: absolute;
+            top: 48%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            font-size: 4.2vw;
+            color: #f7e092;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 140, 0, 0.5);
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+        @media (min-width: 912px) {
+            .jackpot-counter-layer {
+                font-size: 38px;
+            }
+        }
+
+        /* 提示客戶可互動的浮動標籤 */
+        .demo-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 1000;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-badge">✨ 靜態切版展示頁<br>累積獎金區支援即時跳動特效</div>
+
+    <div class="wrapper">
+        <div class="section-block">
+            <img src="site_assets/header_hero.jpg" alt="Header and Hero Banner">
+        </div>
+
+        <div class="section-block">
+            <img src="site_assets/games_sec.jpg" alt="Slot Games">
+        </div>
+
+        <div class="section-block">
+            <img src="site_assets/jackpot_sec.jpg" alt="Progressive Jackpot">
+            <div class="jackpot-counter-layer" id="jackpot-counter">$ 98,765,432.10</div>
+        </div>
+
+        <div class="section-block">
+            <img src="site_assets/winners_sec.jpg" alt="Winners Today">
+        </div>
+
+        <div class="section-block">
+            <img src="site_assets/promo_sec.jpg" alt="Promotions and VIP">
+        </div>
+
+        <div class="section-block">
+            <img src="site_assets/footer_sec.jpg" alt="Footer Info">
+        </div>
+    </div>
+
+    <script>
+        // 模擬累積獎金即時隨機跳動，增強給客戶演示時的真實感
+        let currentJackpot = 98765432.10;
+        const counterElement = document.getElementById('jackpot-counter');
+
+        function formatMoney(amount) {
+            return '$ ' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        setInterval(() => {
+            // 每秒隨機增加一些小額獎金
+            const increment = Math.random() * 5 + 1.5;
+            currentJackpot += increment;
+            counterElement.innerText = formatMoney(currentJackpot);
+        }, 1200);
+    </script>
+</body>
+</html>

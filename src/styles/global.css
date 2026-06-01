@@ -1,0 +1,121 @@
+@import './variables.css';
+@import './animations.css';
+@import './responsive.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+input, select, textarea {
+  outline: none;
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 215, 0, 0.05) transparent;
+}
+
+::selection {
+  background: rgba(255, 215, 0, 0.3);
+  color: var(--text-primary);
+}
+
+.glow-gold {
+  box-shadow: var(--glow-gold);
+}
+
+.glow-red {
+  box-shadow: var(--glow-red);
+}
+
+.btn-primary {
+  background: var(--gold-gradient);
+  color: #000;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  box-shadow: var(--glow-gold);
+}
+
+.btn-primary:hover {
+  box-shadow: var(--glow-intense);
+  transform: translateY(-2px);
+}
+
+.btn-cta {
+  background: var(--gradient-fire);
+  color: #fff;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  box-shadow: var(--glow-red);
+}
+
+.btn-cta:hover {
+  box-shadow: 0 0 40px rgba(255, 69, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+.card-glow {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glow-border);
+  transition: var(--transition);
+}
+
+.card-glow:hover {
+  border-color: var(--gold);
+  box-shadow: var(--glow-gold);
+  transform: translateY(-4px);
+}

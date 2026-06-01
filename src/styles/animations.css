@@ -1,0 +1,102 @@
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3), 0 0 60px rgba(255, 215, 0, 0.1); }
+}
+
+@keyframes pulse-intense {
+  0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.4), 0 0 100px rgba(255, 215, 0, 0.2); }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0px); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes coin-spin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+@keyframes jackpot-count {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  33% { opacity: 0.8; }
+  66% { opacity: 1; }
+  80% { opacity: 0.6; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5), 0 0 60px rgba(255, 215, 0, 0.2); }
+}
+
+@keyframes glow-spread {
+  0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.2); }
+  100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3); }
+}
+
+.shimmer-text {
+  background: var(--gold-shimmer);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.glow-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.glow-intense-pulse {
+  animation: pulse-intense 1.5s ease-in-out infinite;
+}
+
+.float-anim {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes logo-glow {
+  0% { filter: drop-shadow(0 0 1px rgba(255,215,0,0.1)) brightness(1); }
+  35% { filter: drop-shadow(0 0 4px rgba(255,215,0,0.8)) drop-shadow(0 0 8px rgba(255,215,0,0.4)) brightness(1.05); }
+  55% { filter: drop-shadow(0 0 3px rgba(255,215,0,0.6)) drop-shadow(0 0 6px rgba(255,215,0,0.3)) brightness(1.03); }
+  100% { filter: drop-shadow(0 0 1px rgba(255,215,0,0.1)) brightness(1); }
+}
+
+
+.jackpot-text {
+  font-weight: 900;
+  background: var(--gold-gradient-vertical);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

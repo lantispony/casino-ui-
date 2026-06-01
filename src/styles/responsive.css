@@ -1,0 +1,152 @@
+/* Responsive Design */
+
+@media (max-width: 768px) {
+  /* Layout */
+  .sidebar { display: none; }
+/* Layout */
+  header {
+    left: 0 !important;
+    padding: 0 16px !important;
+    height: 60px !important;
+  }
+
+  .menuBtn { display: flex !important; }
+
+  main {
+    margin-left: 0 !important;
+  }
+
+  .content {
+    padding-top: 60px !important;
+  }
+
+  /* Pages */
+  .page {
+    padding: 12px 14px 30px !important;
+  }
+
+  /* Lobby */
+  .bannerCard {
+    height: 220px !important;
+    padding: 0 24px !important;
+  }
+  .bannerTitle {
+    font-size: 24px !important;
+  }
+  .bannerSub {
+    font-size: 14px !important;
+  }
+
+  .statsBar {
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+  }
+  .statDivider { display: none !important; }
+  .statItem { width: 100% !important; }
+
+  .gameGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .featuresGrid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .sectionHeader {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  /* Game Pages */
+  .gameArea {
+    flex-direction: column !important;
+  }
+  .controls {
+    width: 100% !important;
+  }
+
+  .machine {
+    min-width: unset !important;
+  }
+
+  .reelBox {
+    width: 70px !important;
+    height: 90px !important;
+  }
+
+  .symbolStyle { font-size: 32px !important; }
+
+  /* Baccarat */
+  .table {
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 20px !important;
+  }
+  .vsSection { width: 100% !important; }
+  .actionRow { flex-direction: row !important; }
+  .sideSection { width: 100% !important; }
+
+  /* Roulette */
+  .wheelSection { transform: scale(0.8) !important; transform-origin: top center !important; }
+
+  /* Dice */
+  .predictionGrid { grid-template-columns: 1fr 1fr 1fr !important; gap: 6px !important; }
+  .diceBox { width: 65px !important; height: 65px !important; }
+  .diceFace { font-size: 32px !important; }
+
+  /* Lottery */
+  .numberGrid {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)) !important;
+    gap: 4px !important;
+  }
+  .numBtn { font-size: 11px !important; }
+
+  /* Fish */
+  .gameCanvas { height: 320px !important; }
+
+  /* User Center */
+  .heroContent { flex-direction: column !important; text-align: center !important; }
+  .mainBalance { text-align: center !important; }
+
+  .statsGrid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Deposit */
+  .methodsGrid { grid-template-columns: 1fr 1fr !important; }
+  .amountGrid { grid-template-columns: 1fr 1fr 1fr !important; }
+  .customRow { flex-direction: column !important; align-items: stretch !important; }
+
+  /* Events */
+  .eventsGrid { grid-template-columns: 1fr !important; }
+  .vipTiers { flex-direction: column !important; align-items: center !important; }
+
+  /* Records */
+  .summaryGrid { grid-template-columns: 1fr 1fr !important; }
+  .tableWrap { overflow-x: auto !important; }
+
+  /* Footer */
+  .footerContent { flex-direction: column !important; gap: 24px !important; }
+  .footerLinks { gap: 30px !important; }
+  .ctaSection { padding: 40px 20px !important; }
+}
+
+@media (max-width: 480px) {
+  .featuresGrid { grid-template-columns: 1fr !important; }
+  .statsGrid { grid-template-columns: 1fr !important; }
+  .summaryGrid { grid-template-columns: 1fr !important; }
+  .methodsGrid { grid-template-columns: 1fr !important; }
+  .amountGrid { grid-template-columns: 1fr 1fr !important; }
+  .bannerCard { height: 180px !important; padding: 0 16px !important; }
+  .bannerTitle { font-size: 18px !important; }
+  .bannerSub { font-size: 12px !important; }
+  .bannerBtn { padding: 8px 20px !important; font-size: 13px !important; }
+  .gameCard { flex-direction: column !important; text-align: center !important; }
+  .gameArrow { display: none !important; }
+  .gameNameRow { justify-content: center !important; }
+  .diceRow { gap: 10px !important; }
+  .diceBox { width: 55px !important; height: 55px !important; }
+  .diceFace { font-size: 26px !important; }
+  .reelBox { width: 56px !important; height: 76px !important; }
+  .symbolStyle { font-size: 26px !important; }
+}
