@@ -5,8 +5,8 @@
   --gold-dark: #B8860B;
   --gold-rich: #FFB300;
   --gold-pale: #F9E076;
-  --gold-gradient: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
-  --gold-gradient-vertical: linear-gradient(180deg, #FFE44D, #FF8C00, #FFD700);
+  --gold-gradient: linear-gradient(135deg, #FFF8DC, #FFD700, #FF8C00, #8B6914, #FFD700);
+  --gold-gradient-vertical: linear-gradient(180deg, #FFF8DC, #FFD700, #FF8C00, #8B6914, #FFD700);
   --gold-shimmer: linear-gradient(
     135deg,
     rgba(255, 215, 0, 0) 0%,

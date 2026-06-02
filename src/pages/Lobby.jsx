@@ -11,7 +11,7 @@ import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
 import Beams from '../components/animations/Beams';
 
-function RollingNumber({ value, duration = 800 }) {
+function RollingNumber({ value, duration = 2000 }) {
   const [display, setDisplay] = useState(value);
   const prevRef = useRef(value);
   const rafRef = useRef();
@@ -25,7 +25,7 @@ function RollingNumber({ value, duration = 800 }) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(start + (end - start) * eased);
+      const current = Math.floor(start + (end - start) * eased);
       setDisplay(current);
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tick);
