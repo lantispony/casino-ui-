@@ -146,7 +146,7 @@ export default function Sidebar({ isOpen, onClose }) {
           padding: '14px 20px', borderTop: '1px solid rgba(255,215,0,0.08)',
           textAlign: 'center', fontSize: 10, color: '#444', letterSpacing: 1,
         }}>
-          MONARCH CASINO™ v1.0.8
+          MONARCH CASINO™ v1.0.9
         </div>
       </motion.aside>
     </>

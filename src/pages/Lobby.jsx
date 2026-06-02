@@ -124,7 +124,7 @@ export default function Lobby() {
             style={{
               position: 'relative', height: isTiny ? 320 : 380, borderRadius: 24, overflow: 'hidden',
               background: currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
-              display: 'flex', alignItems: 'center', padding: isNarrow ? '0 28px' : '0 60px',
+              display: 'flex', alignItems: 'center', padding: '0 60px',
             }}
           >
             {currentBanner === 0 && (
@@ -138,9 +138,9 @@ export default function Lobby() {
             )}
 
             {/* Banner 2-3 right image */}
-            {currentBanner > 0 && banners[currentBanner].image && !isTiny && (
+            {currentBanner > 0 && banners[currentBanner].image && (
               <div style={{
-                position: 'absolute', right: 0, top: 0, bottom: 0, width: isNarrow ? '35%' : '50%', zIndex: 1,
+                position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1,
               }}>
                 <img src={banners[currentBanner].image} alt=""
                   style={{
@@ -199,7 +199,7 @@ export default function Lobby() {
         {currentBanner === 0 && (
           <>
             <div style={{
-              position: 'absolute', right: isNarrow ? '-5%' : '-10%', top: '-80px', bottom: 0, width: isNarrow ? '55%' : '70%',
+              position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
               overflow: 'hidden', zIndex: 11, pointerEvents: 'none',
               WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
               WebkitMaskComposite: 'intersect',
