@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -11,33 +11,33 @@ import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
 import Beams from '../components/animations/Beams';
 
-function RollingNumber({ value, duration = 2000 }) {
-  const [display, setDisplay] = useState(value);
-  const prevRef = useRef(value);
-  const rafRef = useRef();
-
-  useEffect(() => {
-    const start = prevRef.current;
-    const end = value;
-    if (start === end) return;
-    const startTime = performance.now();
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.floor(start + (end - start) * eased);
-      setDisplay(current);
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        prevRef.current = end;
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [value, duration]);
-
-  return display.toLocaleString('en-US');
+function FixedNumber({ value, digits = 8 }) {
+  const str = String(Math.floor(value)).padStart(digits, '0');
+  const parts = str.replace(/\B(?=(\d{3})+(?!\d))/g, ',').split('');
+  return (
+    <>
+      <span style={{ display: 'inline-block', width: 20, textAlign: 'center' }}>$</span>
+      {parts.map((ch, i) => (
+        <AnimatePresence key={i}>
+          <motion.span
+            key={`${i}-${ch}`}
+            initial={{ y: -30 }}
+            animate={{ y: 0 }}
+            exit={{ y: 30 }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
+            style={{
+              display: 'inline-block',
+              width: ch === ',' ? 16 : 24,
+              textAlign: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {ch}
+          </motion.span>
+        </AnimatePresence>
+      ))}
+    </>
+  );
 }
 
 export default function Lobby() {
@@ -48,8 +48,8 @@ export default function Lobby() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setJackpot((prev) => prev + Math.floor(Math.random() * 100));
-    }, 2000);
+      setJackpot((prev) => prev + 1);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -84,7 +84,7 @@ export default function Lobby() {
               fontVariantNumeric: 'tabular-nums', letterSpacing: 2, whiteSpace: 'nowrap',
               minWidth: 300,
             }}>
-              <span>$<RollingNumber value={jackpot} /></span>
+              <FixedNumber value={jackpot} />
             </div>
           </div>
           <button onClick={triggerWin} style={{
@@ -128,14 +128,11 @@ export default function Lobby() {
             {currentBanner > 0 && banners[currentBanner].image && (
               <div style={{
                 position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1,
-                WebkitMaskImage: 'linear-gradient(to left, black 30%, transparent 100%)',
-                maskImage: 'linear-gradient(to left, black 30%, transparent 100%)',
               }}>
                 <img src={banners[currentBanner].image} alt=""
                   style={{
-                    height: '100%', width: '100%', objectFit: 'cover',
-                    objectPosition: 'center center',
-                    transform: currentBanner === 1 ? 'scale(0.85)' : undefined,
+                    height: '100%', width: '100%', objectFit: 'contain',
+                    objectPosition: 'right center',
                   }} />
               </div>
             )}
