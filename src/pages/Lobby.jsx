@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const handler = (e) => setMatches(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [query]);
+  return matches;
+}
 import {
   Coin, Star, Coins as CoinsIcon, ChartLineUp, Target, GameController,
   CaretRight, CalendarCheck, Crown, Ticket, ShoppingCart, Trophy, Sword,
@@ -45,6 +56,8 @@ export default function Lobby() {
   const [showWin, setShowWin] = useState(false);
   const [showCoins, setShowCoins] = useState(false);
   const [jackpot, setJackpot] = useState(12847392);
+  const isNarrow = useMediaQuery('(max-width: 1450px)');
+  const isTiny = useMediaQuery('(max-width: 800px)');
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -109,9 +122,9 @@ export default function Lobby() {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.6 }}
             style={{
-              position: 'relative', height: 380, borderRadius: 24, overflow: 'hidden',
+              position: 'relative', height: isTiny ? 320 : 380, borderRadius: 24, overflow: 'hidden',
               background: currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
-              display: 'flex', alignItems: 'center', padding: '0 60px',
+              display: 'flex', alignItems: 'center', padding: isNarrow ? '0 28px' : '0 60px',
             }}
           >
             {currentBanner === 0 && (
@@ -124,36 +137,10 @@ export default function Lobby() {
               </div>
             )}
 
-            {/* Banner 1 bleed image inside card (clipped by overflow hidden) */}
-            {currentBanner === 0 && (
-              <>
-                <div style={{
-                  position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
-                  zIndex: 1, pointerEvents: 'none',
-                  WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-                  WebkitMaskComposite: 'intersect',
-                  maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-                  maskComposite: 'intersect',
-                }}>
-                  <img src="/images/gold_black_025.png" alt=""
-                    style={{
-                      position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
-                      objectFit: 'cover', objectPosition: 'top right',
-                    }} />
-                </div>
-                <div style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-                  borderRadius: '0 0 24px 24px',
-                  background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
-                  pointerEvents: 'none', zIndex: 2,
-                }} />
-              </>
-            )}
-
             {/* Banner 2-3 right image */}
-            {currentBanner > 0 && banners[currentBanner].image && (
+            {currentBanner > 0 && banners[currentBanner].image && !isTiny && (
               <div style={{
-                position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1,
+                position: 'absolute', right: 0, top: 0, bottom: 0, width: isNarrow ? '35%' : '50%', zIndex: 1,
               }}>
                 <img src={banners[currentBanner].image} alt=""
                   style={{
@@ -163,15 +150,8 @@ export default function Lobby() {
               </div>
             )}
 
-            {/* Text content with dark backdrop for RWD readability */}
-            <div style={{
-              position: 'relative', zIndex: 3, maxWidth: 600,
-              padding: '20px 28px',
-              borderRadius: 12,
-              background: 'linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
-              WebkitBackdropFilter: 'blur(4px)',
-              backdropFilter: 'blur(4px)',
-            }}>
+            {/* Text content */}
+            <div style={{ position: 'relative', zIndex: 3, maxWidth: isNarrow ? 380 : 600 }}>
               <div style={{
                 display: 'inline-block', padding: '4px 16px', borderRadius: 20,
                 background: 'linear-gradient(135deg, #FF4500, #FF0000)', color: '#fff',
@@ -184,7 +164,7 @@ export default function Lobby() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="jackpot-text"
-                style={{ fontSize: 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}
+                style={{ fontSize: isTiny ? 30 : 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}
               >
                 {banners[currentBanner].title}
               </motion.h1>
@@ -192,7 +172,7 @@ export default function Lobby() {
                 initial={{ x: -30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.35 }}
-                style={{ color: '#ccc', fontSize: 18, marginBottom: 24, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}
+                style={{ color: '#ccc', fontSize: isTiny ? 14 : 18, marginBottom: 24, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}
               >
                 {banners[currentBanner].subtitle}
               </motion.p>
@@ -215,7 +195,31 @@ export default function Lobby() {
           pointerEvents: 'none', zIndex: 10,
         }} />
 
-        {/* Navigation dots */}
+        {/* Banner 1 bleed image */}
+        {currentBanner === 0 && (
+          <>
+            <div style={{
+              position: 'absolute', right: isNarrow ? '-5%' : '-10%', top: '-80px', bottom: 0, width: isNarrow ? '55%' : '70%',
+              overflow: 'hidden', zIndex: 11, pointerEvents: 'none',
+              WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+              WebkitMaskComposite: 'intersect',
+              maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+              maskComposite: 'intersect',
+            }}>
+              <img src="/images/gold_black_025.png" alt=""
+                style={{
+                  position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
+                  objectFit: 'cover', objectPosition: 'top right',
+                }} />
+            </div>
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
+              borderRadius: '0 0 24px 24px',
+              background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
+              pointerEvents: 'none', zIndex: 3,
+            }} />
+          </>
+        )}
         <div style={{
           position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
           display: 'flex', gap: 8, zIndex: 11,
