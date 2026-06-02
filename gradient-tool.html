@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漸層渲染器</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111; color: #eee; display: flex; height: 100vh; user-select: none; }
+.left { width: 420px; min-width: 420px; padding: 24px; border-right: 1px solid #333; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.right { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: #1a1a1a; }
+.preview { width: 100%; max-width: 700px; height: 400px; border-radius: 16px; border: 1px solid #333; transition: all 0.3s; }
+
+h2 { font-size: 11px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+h3 { font-size: 10px; color: #666; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+.group { display: flex; flex-direction: column; gap: 5px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row label { font-size: 12px; color: #aaa; white-space: nowrap; }
+
+input[type="text"], input[type="number"], select {
+  background: #222; border: 1px solid #333; border-radius: 6px; padding: 7px 10px; color: #eee; font-size: 13px; outline: none;
+}
+input[type="text"]:focus, select:focus { border-color: #FFD700; }
+input[type="range"] { width: 100%; accent-color: #FFD700; height: 4px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #FFD700; cursor: pointer; }
+.angle-display { font-size: 12px; color: #FFD700; font-weight: 700; }
+
+/* === Gradient Bar === */
+.gradient-bar { height: 32px; border-radius: 6px; cursor: pointer; position: relative; border: 1px solid #333; background: repeating-conic-gradient(#1a1a1a 0% 25%, #2a2a2a 0% 50%) 0 0 / 12px 12px; overflow: hidden; margin-bottom: 4px; }
+.gradient-bar-fill { height: 100%; border-radius: 5px; position: relative; z-index: 1; }
+
+/* === Stop Markers === */
+.stop-markers { position: relative; height: 40px; }
+.stop-marker {
+  position: absolute; width: 36px; height: 38px; margin-left: -18px; z-index: 2;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+}
+.stop-marker .op-row { display: flex; justify-content: center; gap: 0; width: 100%; height: 10px; }
+.stop-marker .op-btn {
+  font-size: 8px; cursor: pointer; color: #666; width: 12px; text-align: center; line-height: 10px; transition: color 0.15s;
+}
+.stop-marker .op-btn:hover { color: #FFD700; }
+.stop-marker .arrow-wrap { width: 100%; display: flex; justify-content: center; height: 10px; }
+.stop-marker .arrow {
+  width: 0; height: 0;
+  border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 10px solid #888;
+  transition: border-bottom-color 0.15s;
+}
+.stop-marker.active .arrow { border-bottom-color: #FFD700; }
+.stop-marker .op-val {
+  width: 100%; text-align: center; font-size: 9px; color: #999; line-height: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* === Selected stop === */
+.selected-stop { background: #1a1a1a; border-radius: 8px; padding: 10px 12px; border: 1px solid #333; display: flex; flex-direction: column; gap: 8px; }
+.selected-stop .top-row { display: flex; gap: 10px; align-items: center; }
+.selected-stop .top-row input[type="color"] { width: 36px; height: 36px; border: none; border-radius: 4px; cursor: pointer; background: none; padding: 0; }
+.selected-stop .hex-input { flex: 1; }
+.selected-stop .pos-input { width: 65px; text-align: center; }
+.selected-stop .del-sel { cursor: pointer; color: #ff4444; font-size: 20px; width: 28px; text-align: center; }
+.selected-stop .alpha-row { display: flex; gap: 10px; align-items: center; padding-left: 2px; }
+.selected-stop .alpha-row label { font-size: 11px; color: #888; width: 50px; }
+.selected-stop .alpha-row input[type="range"] { flex: 1; height: 3px; }
+.selected-stop .alpha-row .alpha-val { font-size: 12px; color: #FFD700; font-weight: 700; width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* === Buttons === */
+.actions { display: flex; gap: 8px; }
+.actions button { flex: 1; padding: 7px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; transition: all 0.15s; }
+.actions button:active { transform: scale(0.96); }
+.btn-add { background: #2a2a2a; color: #FFD700; border: 1px solid #444 !important; }
+.btn-add:hover { background: #333; }
+
+/* === Saved gradients === */
+.saved-list { display: flex; flex-direction: column; gap: 3px; max-height: 130px; overflow-y: auto; }
+.saved-item {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px;
+  background: #1a1a1a; border-radius: 6px; border: 1px solid #222; cursor: pointer; transition: all 0.15s;
+}
+.saved-item:hover { border-color: #444; background: #222; }
+.saved-item .swatch { width: 28px; height: 22px; border-radius: 4px; border: 1px solid #333; flex-shrink: 0; }
+.saved-item .name { flex: 1; font-size: 12px; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-item .del-saved { cursor: pointer; color: #666; font-size: 14px; width: 18px; text-align: center; }
+.saved-item .del-saved:hover { color: #ff4444; }
+.save-btn { background: #2a2a2a; color: #FFD700; border: 1px solid #444 !important; }
+.save-btn:hover { background: #333; }
+
+/* === Output === */
+.output-box { background: #0d0d0d; border-radius: 8px; padding: 12px; border: 1px solid #222; margin-top: 2px; }
+.output-box pre { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11.5px; color: #FFD700; white-space: pre-wrap; word-break: break-all; line-height: 1.5; }
+.copy-btn { background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; font-weight: 800; }
+.copy-btn:hover { opacity: 0.9; }
+.tip { font-size: 11px; color: #555; }
+</style>
+</head>
+<body>
+<div class="left">
+  <h2>漸層渲染器</h2>
+  <div class="group">
+    <label>名稱</label>
+    <input type="text" id="gradName" placeholder="my-gradient" value="my-gradient">
+  </div>
+
+  <div class="row">
+    <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+      <label>類型</label>
+      <select id="gradType">
+        <option value="linear">linear-gradient</option>
+        <option value="radial">radial-gradient</option>
+      </select>
+    </div>
+    <div id="angleGroup" style="flex:2;display:flex;flex-direction:column;gap:5px">
+      <label>角度 <span class="angle-display" id="angleDisplay">135deg</span></label>
+      <input type="range" id="gradAngle" min="0" max="360" value="135">
+    </div>
+  </div>
+
+  <div class="group">
+    <label>色標 — 按漸層條新增，拖曳三角形移動，▲/▼調整透明度</label>
+    <div class="gradient-bar" id="gradientBar">
+      <div class="gradient-bar-fill" id="gradientBarFill"></div>
+    </div>
+    <div class="stop-markers" id="stopMarkers"></div>
+    <div class="selected-stop" id="selectedStopPanel">
+      <div class="top-row">
+        <input type="color" id="selColor">
+        <input type="text" class="hex-input" id="selHex" placeholder="#HEX">
+        <input type="number" class="pos-input" id="selPos" min="0" max="100" step="1">
+        <span class="del-sel" id="delSelStop">×</span>
+      </div>
+      <div class="alpha-row">
+        <label>透明度</label>
+        <input type="range" id="selAlpha" min="0" max="100" value="100">
+        <span class="alpha-val" id="selAlphaVal">100%</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-add" id="addStopBtn">+ 新增色標</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <h3>已儲存</h3>
+    <div class="saved-list" id="savedList"></div>
+    <div class="actions">
+      <button class="save-btn" id="saveBtn">💾 儲存目前漸層</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <label>輸出 <span class="tip">(複製後貼給我)</span></label>
+    <div class="output-box">
+      <pre id="outputCode">調整漸層後複製這裡</pre>
+    </div>
+    <div class="actions">
+      <button class="copy-btn" id="copyBtn">📋 複製格式</button>
+    </div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="preview" id="preview"></div>
+</div>
+
+<script>
+let stops = [
+  { color: '#0A001A', alpha: 1, pos: 0 },
+  { color: '#2D0040', alpha: 1, pos: 100 },
+];
+let selectedIdx = 0;
+let dragIdx = -1;
+let isDragging = false;
+const LS_KEY = 'gradient_tool_saves';
+
+/* ====== Color utils ====== */
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  return { r: parseInt(h.substr(0,2),16), g: parseInt(h.substr(2,2),16), b: parseInt(h.substr(4,2),16) };
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
+}
+function toCSSColor(c, a) {
+  if (a >= 0.999) return c;
+  const rgb = hexToRgb(c);
+  return `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
+}
+
+/* ====== Save/Load ====== */
+function loadSaved() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } }
+function saveSaved(list) { localStorage.setItem(LS_KEY, JSON.stringify(list)); }
+
+function renderSavedList() {
+  const list = loadSaved();
+  const c = document.getElementById('savedList');
+  c.innerHTML = '';
+  if (list.length === 0) { c.innerHTML = '<div style="font-size:11px;color:#555;padding:4px 0">尚無儲存</div>'; return; }
+  list.forEach((item, i) => {
+    const d = document.createElement('div'); d.className = 'saved-item';
+    const parts = item.stops.map(s => `${toCSSColor(s.color, s.alpha)} ${s.pos}%`).join(', ');
+    const css = item.type === 'linear' ? `linear-gradient(${item.angle}deg, ${parts})` : `radial-gradient(circle, ${parts})`;
+    d.innerHTML = `<div class="swatch" style="background:${css}"></div><span class="name">${item.name}</span><span class="del-saved" data-idx="${i}">×</span>`;
+    d.addEventListener('click', (e) => { if (!e.target.classList.contains('del-saved')) loadGradient(item); });
+    d.querySelector('.del-saved').addEventListener('click', (e) => {
+      e.stopPropagation(); const list2 = loadSaved(); list2.splice(+e.target.dataset.idx, 1); saveSaved(list2); renderSavedList();
+    });
+    c.appendChild(d);
+  });
+}
+
+function loadGradient(item) {
+  document.getElementById('gradName').value = item.name;
+  document.getElementById('gradType').value = item.type;
+  if (item.angle != null) { document.getElementById('gradAngle').value = item.angle; document.getElementById('angleDisplay').textContent = item.angle + 'deg'; }
+  document.getElementById('angleGroup').style.display = item.type === 'linear' ? 'flex' : 'none';
+  stops = item.stops.map(s => ({ ...s }));
+  selectedIdx = 0;
+  renderAll();
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const name = document.getElementById('gradName').value.trim() || 'unnamed';
+  const type = document.getElementById('gradType').value;
+  const angle = +document.getElementById('gradAngle').value;
+  const list = loadSaved();
+  const existing = list.findIndex(g => g.name === name);
+  const entry = { name, type, angle, stops: JSON.parse(JSON.stringify(stops)) };
+  existing >= 0 ? list[existing] = entry : list.push(entry);
+  saveSaved(list); renderSavedList();
+  const btn = document.getElementById('saveBtn'); btn.textContent = '✅ 已儲存'; setTimeout(() => btn.textContent = '💾 儲存目前漸層', 1200);
+});
+
+/* ====== Renderers ====== */
+function renderGradientBar() {
+  const fill = document.getElementById('gradientBarFill');
+  fill.style.background = getGradientCSS();
+}
+
+function renderStopMarkers() {
+  const c = document.getElementById('stopMarkers'); c.innerHTML = '';
+  const bar = document.getElementById('gradientBar'); const barW = bar.offsetWidth || 400;
+  stops.forEach((s, i) => {
+    const m = document.createElement('div'); m.className = 'stop-marker' + (i === selectedIdx ? ' active' : '');
+    m.dataset.idx = i; m.style.left = (s.pos / 100 * barW) + 'px';
+    const pct = Math.round(s.alpha * 100);
+    m.innerHTML = `
+      <div class="op-row">
+        <span class="op-btn op-up" data-idx="${i}">▲</span>
+        <span class="op-btn op-dn" data-idx="${i}">▼</span>
+      </div>
+      <div class="arrow-wrap"><div class="arrow"></div></div>
+      <div class="op-val">${pct}</div>
+    `;
+    m.querySelector('.arrow-wrap').addEventListener('mousedown', (e) => {
+      e.preventDefault(); dragIdx = i; selectedIdx = i; isDragging = true; renderAll(); startDrag(e);
+    });
+    m.querySelector('.op-up').addEventListener('click', (e) => { e.stopPropagation(); adjustAlpha(i, 0.05); });
+    m.querySelector('.op-dn').addEventListener('click', (e) => { e.stopPropagation(); adjustAlpha(i, -0.05); });
+    c.appendChild(m);
+  });
+}
+
+function adjustAlpha(idx, delta) {
+  stops[idx].alpha = Math.max(0, Math.min(1, +(stops[idx].alpha + delta).toFixed(2)));
+  selectedIdx = idx; renderAll();
+}
+
+function renderSelectedPanel() {
+  const s = stops[selectedIdx] || stops[0]; if (!s) return;
+  document.getElementById('selColor').value = s.color;
+  document.getElementById('selHex').value = s.color;
+  document.getElementById('selPos').value = s.pos;
+  const a = Math.round(s.alpha * 100);
+  document.getElementById('selAlpha').value = a;
+  document.getElementById('selAlphaVal').textContent = a + '%';
+}
+
+function renderAll() { renderGradientBar(); renderStopMarkers(); renderSelectedPanel(); updatePreview(); updateOutput(); }
+
+/* ====== Dragging ====== */
+function startDrag(e) {
+  const bar = document.getElementById('gradientBar'); const rect = bar.getBoundingClientRect();
+  const onMove = (ev) => {
+    const x = ev.clientX - rect.left; const pct = Math.max(0, Math.min(100, Math.round((x / rect.width) * 100)));
+    stops[dragIdx].pos = pct; if (selectedIdx !== dragIdx) { selectedIdx = dragIdx; } renderAll();
+  };
+  const onUp = () => { isDragging = false; dragIdx = -1; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); onMove(e);
+}
+
+/* ====== Add / Delete ====== */
+document.getElementById('gradientBar').addEventListener('click', (e) => {
+  if (isDragging) return;
+  const rect = document.getElementById('gradientBar').getBoundingClientRect();
+  const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+  stops.push({ color: '#666666', alpha: 1, pos: pct });
+  stops.sort((a, b) => a.pos - b.pos);
+  selectedIdx = stops.findIndex(s => s.pos === pct && s.color === '#666666');
+  renderAll();
+});
+
+document.getElementById('addStopBtn').addEventListener('click', () => {
+  const last = stops[stops.length - 1]; const pos = Math.min(100, last.pos + 20);
+  stops.push({ color: '#666666', alpha: 1, pos }); stops.sort((a, b) => a.pos - b.pos);
+  selectedIdx = stops.findIndex(s => s.color === '#666666' && s.pos === pos);
+  renderAll();
+});
+
+document.getElementById('delSelStop').addEventListener('click', () => {
+  if (stops.length <= 2) return;
+  stops.splice(selectedIdx, 1); selectedIdx = Math.min(selectedIdx, stops.length - 1); renderAll();
+});
+
+/* ====== Selected panel events ====== */
+document.getElementById('selColor').addEventListener('input', function() {
+  if (!stops[selectedIdx]) return; stops[selectedIdx].color = this.value; document.getElementById('selHex').value = this.value; renderAll();
+});
+document.getElementById('selHex').addEventListener('input', function() {
+  if (!stops[selectedIdx]) return; stops[selectedIdx].color = this.value;
+  if (/^#[0-9a-f]{6}$/i.test(this.value)) document.getElementById('selColor').value = this.value; renderAll();
+});
+document.getElementById('selPos').addEventListener('input', function() {
+  if (!stops[selectedIdx]) return; stops[selectedIdx].pos = Math.max(0, Math.min(100, +this.value || 0)); renderAll();
+});
+document.getElementById('selAlpha').addEventListener('input', function() {
+  if (!stops[selectedIdx]) return; stops[selectedIdx].alpha = +(this.value / 100).toFixed(2); renderAll();
+});
+
+/* ====== Global events ====== */
+document.getElementById('gradType').addEventListener('change', function() {
+  document.getElementById('angleGroup').style.display = this.value === 'linear' ? 'flex' : 'none'; renderAll();
+});
+document.getElementById('gradAngle').addEventListener('input', function() {
+  document.getElementById('angleDisplay').textContent = this.value + 'deg'; renderAll();
+});
+document.getElementById('gradName').addEventListener('input', () => { updateOutput(); });
+
+/* ====== Core ====== */
+function getGradientCSS() {
+  const type = document.getElementById('gradType').value; const angle = +document.getElementById('gradAngle').value;
+  const parts = stops.map(s => `${toCSSColor(s.color, s.alpha)} ${s.pos}%`);
+  return type === 'linear' ? `linear-gradient(${angle}deg, ${parts.join(', ')})` : `radial-gradient(circle at center, ${parts.join(', ')})`;
+}
+function updatePreview() { document.getElementById('preview').style.background = getGradientCSS(); }
+function updateOutput() {
+  const name = document.getElementById('gradName').value.trim() || 'unnamed';
+  const type = document.getElementById('gradType').value; const angle = +document.getElementById('gradAngle').value;
+  let out = `name: "${name}"\ntype: ${type}\n`;
+  if (type === 'linear') out += `angle: ${angle}\n`;
+  out += `stops:\n`;
+  stops.forEach(s => { out += `  - color: "${s.color}" at ${s.pos}%` + (s.alpha < 1 ? ` alpha: ${s.alpha}` : '') + `\n`; });
+  out += `\n--- CSS ---\n` + getGradientCSS();
+  document.getElementById('outputCode').textContent = out;
+}
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = document.getElementById('outputCode').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn'); btn.textContent = '✅ 已複製'; setTimeout(() => btn.textContent = '📋 複製格式', 1500);
+  });
+});
+
+window.addEventListener('resize', () => { renderStopMarkers(); });
+renderAll(); renderSavedList();
+</script>
+</body>
+</html>

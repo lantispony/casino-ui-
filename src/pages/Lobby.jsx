@@ -124,7 +124,33 @@ export default function Lobby() {
               </div>
             )}
 
-            {/* Banner image inside card (right side, no bleed) */}
+            {/* Banner 1 bleed image inside card (clipped by overflow hidden) */}
+            {currentBanner === 0 && (
+              <>
+                <div style={{
+                  position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
+                  zIndex: 1, pointerEvents: 'none',
+                  WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+                  WebkitMaskComposite: 'intersect',
+                  maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+                  maskComposite: 'intersect',
+                }}>
+                  <img src="/images/gold_black_025.png" alt=""
+                    style={{
+                      position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
+                      objectFit: 'cover', objectPosition: 'top right',
+                    }} />
+                </div>
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
+                  borderRadius: '0 0 24px 24px',
+                  background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
+                  pointerEvents: 'none', zIndex: 2,
+                }} />
+              </>
+            )}
+
+            {/* Banner 2-3 right image */}
             {currentBanner > 0 && banners[currentBanner].image && (
               <div style={{
                 position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1,
@@ -137,7 +163,15 @@ export default function Lobby() {
               </div>
             )}
 
-            <div style={{ position: 'relative', zIndex: 2, maxWidth: 600 }}>
+            {/* Text content with dark backdrop for RWD readability */}
+            <div style={{
+              position: 'relative', zIndex: 3, maxWidth: 600,
+              padding: '20px 28px',
+              borderRadius: 12,
+              background: 'linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
+              WebkitBackdropFilter: 'blur(4px)',
+              backdropFilter: 'blur(4px)',
+            }}>
               <div style={{
                 display: 'inline-block', padding: '4px 16px', borderRadius: 20,
                 background: 'linear-gradient(135deg, #FF4500, #FF0000)', color: '#fff',
@@ -150,7 +184,7 @@ export default function Lobby() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="jackpot-text"
-                style={{ fontSize: 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1 }}
+                style={{ fontSize: 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}
               >
                 {banners[currentBanner].title}
               </motion.h1>
@@ -158,7 +192,7 @@ export default function Lobby() {
                 initial={{ x: -30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.35 }}
-                style={{ color: '#ccc', fontSize: 18, marginBottom: 24 }}
+                style={{ color: '#ccc', fontSize: 18, marginBottom: 24, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}
               >
                 {banners[currentBanner].subtitle}
               </motion.p>
@@ -181,36 +215,10 @@ export default function Lobby() {
           pointerEvents: 'none', zIndex: 10,
         }} />
 
-        {/* Banner 1 bleed image */}
-        {currentBanner === 0 && (
-          <>
-            <div style={{
-              position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
-              overflow: 'hidden', zIndex: 11, pointerEvents: 'none',
-              WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-              WebkitMaskComposite: 'intersect',
-              maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-              maskComposite: 'intersect',
-            }}>
-              <img src="/images/gold_black_025.png" alt=""
-                style={{
-                  position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
-                  objectFit: 'cover', objectPosition: 'top right',
-                }} />
-            </div>
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-              borderRadius: '0 0 24px 24px',
-              background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
-              pointerEvents: 'none', zIndex: 3,
-            }} />
-          </>
-        )}
-
         {/* Navigation dots */}
         <div style={{
           position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', gap: 8, zIndex: 12,
+          display: 'flex', gap: 8, zIndex: 11,
         }}>
           {banners.map((_, i) => (
             <div key={i} onClick={() => setCurrentBanner(i)} style={{

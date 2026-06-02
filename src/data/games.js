@@ -75,7 +75,7 @@ export const banners = [
     subtitle: 'One lucky player wins big every single day',
     tag: 'JACKPOT',
     gradient: 'linear-gradient(135deg, #0A001A, #2D0040)',
-    image: '/images/banner_girl_02.png',
+    image: '/images/banner_girl_04.png',
   },
   {
     id: 3,
