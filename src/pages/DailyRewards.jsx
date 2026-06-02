@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { dailyRewards } from '../data/games';
+import { CalendarCheck, Check, Lightbulb } from '@phosphor-icons/react';
 import CoinRain from '../components/animations/CoinRain';
 import { useState } from 'react';
 
@@ -20,8 +21,8 @@ export default function DailyRewards() {
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
       <CoinRain active={showCoins} />
 
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, textAlign: 'center' }}>
-        📅 DAILY REWARDS
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <CalendarCheck size={28} color="url(#goldGrad)" /> DAILY REWARDS
       </div>
       <p style={{ color: '#777', fontSize: 14, textAlign: 'center', marginBottom: 32 }}>
         Check in every day — bigger rewards the longer your streak!
@@ -69,7 +70,7 @@ export default function DailyRewards() {
               }}
               onClick={() => canClaim && claim(d.day)}
             >
-              {isClaimed && <div style={{ position: 'absolute', top: 6, right: 8, color: '#00FF7F', fontSize: 14 }}>✓</div>}
+              {isClaimed && <div style={{ position: 'absolute', top: 6, right: 8, color: '#00FF7F', display: 'flex', alignItems: 'center' }}><Check size={14} color="#00FF7F" /></div>}
               <div style={{ fontSize: 28, marginBottom: 6, filter: canClaim ? 'drop-shadow(0 0 8px rgba(255,215,0,0.5))' : 'none' }}>
                 {d.icon}
               </div>
@@ -97,7 +98,7 @@ export default function DailyRewards() {
         marginTop: 32, background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24,
       }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 4 }}>💡 TIP</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}><Lightbulb size={16} color="url(#goldGrad)" /> TIP</div>
         <p style={{ color: '#666', fontSize: 13, lineHeight: 1.6 }}>
           Don't break your streak! Day 7 rewards you with a massive $5,000 bonus.
           Streak resets if you miss a day.

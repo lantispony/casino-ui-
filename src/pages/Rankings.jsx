@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Trophy, Crown } from '@phosphor-icons/react';
 import { rankings, userStats } from '../data/games';
 
 export default function Rankings() {
@@ -8,7 +9,7 @@ export default function Rankings() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
       <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, textAlign: 'center' }}>
-        🏆 LEADERBOARD
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Trophy size={28} color="url(#goldGrad)" /> LEADERBOARD</span>
       </div>
       <p style={{ color: '#777', fontSize: 14, textAlign: 'center', marginBottom: 32 }}>
         Top players ranked by lifetime winnings
@@ -38,7 +39,7 @@ export default function Rankings() {
         {top3[0] && (
           <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0 }}
             style={{ textAlign: 'center', width: 160 }}>
-            <div style={{ fontSize: 20, marginBottom: 4, animation: 'neon-pulse 2s ease-in-out infinite' }}>👑</div>
+            <div style={{ fontSize: 20, marginBottom: 4, animation: 'neon-pulse 2s ease-in-out infinite', display: 'flex', justifyContent: 'center' }}><Crown size={18} color="url(#goldGrad)" /></div>
             <div style={{ fontSize: 40, marginBottom: 4, filter: 'drop-shadow(0 0 15px rgba(255,215,0,0.5))' }}>{top3[0].avatar}</div>
             <div style={{ color: '#FFD700', fontSize: 18, fontWeight: 900 }}>#1</div>
             <div style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>{top3[0].name}</div>

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Fish, Trophy, Book } from '@phosphor-icons/react';
 
 const fishTypes = [
   { id: 1, name: 'Clownfish', points: 10, size: 28, color: '#FF6B6B', speed: 2 },
@@ -54,11 +55,11 @@ export default function FishPage() {
     <div style={{ padding: '24px 32px 50px', maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2 }}>🐟 FISHING KING</div>
+          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 12 }}><Fish size={32} color="url(#goldGrad)" /> FISHING KING</div>
           <div style={{ color: 'var(--gold)', fontSize: 12, fontWeight: 600, letterSpacing: 3, marginTop: 2 }}>HUNT THE DEEP</div>
         </div>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ color: 'var(--gold)', fontWeight: 700 }}>🏆 {score}</div>
+          <div style={{ color: 'var(--gold)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={22} color="url(#goldGrad)" />{score}</div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#666', fontSize: 9, letterSpacing: 1 }}>BALANCE</div>
             <div className="shimmer-text" style={{ fontSize: 18, fontWeight: 900 }}>${balance.toLocaleString()}</div>
@@ -89,8 +90,8 @@ export default function FishPage() {
         {/* Fish */}
         {fishes.map(f => (
           <motion.div key={f.id} animate={{ x: f.dir > 0 ? 900 : -100 }} transition={{ duration: f.type.speed * 10, repeat: Infinity, ease: 'linear' }}
-            style={{ position: 'absolute', top: f.y, fontSize: f.type.size, cursor: 'pointer', filter: 'drop-shadow(0 0 10px rgba(255,215,0,0.25))' }}>
-            🐟
+            style={{ position: 'absolute', top: f.y, cursor: 'pointer', filter: 'drop-shadow(0 0 10px rgba(255,215,0,0.25))' }}>
+            <Fish size={f.type.size} color="url(#goldGrad)" />
           </motion.div>
         ))}
 
@@ -119,7 +120,7 @@ export default function FishPage() {
       </div>
 
       <div style={{ marginTop: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24 }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>📖 GAME INFO</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><Book size={20} color="url(#goldGrad)" /> GAME INFO</div>
         <p style={{ color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           Click to fire cannons and catch fish! Bigger fish = bigger rewards.
           This is a UI demo only — no real gambling or cashouts possible.

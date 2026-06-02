@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
+import { Compass, Book } from '@phosphor-icons/react';
 
 const numbers = Array.from({ length: 37 }, (_, i) => i);
 const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
@@ -60,7 +61,7 @@ export default function RoulettePage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
-          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2 }}>🎡 ROYAL ROULETTE</div>
+          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 12 }}><Compass size={32} color="url(#goldGrad)" /> ROYAL ROULETTE</div>
           <div style={{ color: 'var(--gold)', fontSize: 12, fontWeight: 600, letterSpacing: 3, marginTop: 2 }}>WHERE THE BALL LANDS</div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -168,7 +169,7 @@ export default function RoulettePage() {
               animation: spinning ? 'none' : 'glow-intense-pulse 2s ease-in-out infinite',
             }}
           >
-            {spinning ? '🎡 SPINNING...' : '🎡 SPIN'}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}><Compass size={20} color="url(#goldGrad)" />{spinning ? 'SPINNING...' : 'SPIN'}</span>
           </motion.button>
 
           {lastWin > 0 && (
@@ -188,7 +189,7 @@ export default function RoulettePage() {
         marginTop: 32, background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24,
       }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>📖 GAME INFO</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><Book size={20} color="url(#goldGrad)" /> GAME INFO</div>
         <p style={{ color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           European roulette with numbers 0-36. Place your bet and predict where the ball lands.
           This is a UI demo only — no real gambling or cashouts possible.

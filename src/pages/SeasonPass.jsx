@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import { seasonPass } from '../data/games';
+import { Ticket, Diamond } from '@phosphor-icons/react';
 
 export default function SeasonPass() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4 }}>
-        🎫 SEASON PASS
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Ticket size={28} color="url(#goldGrad)" /> SEASON PASS
       </div>
       <p style={{ color: '#777', fontSize: 14, marginBottom: 8 }}>
         Season {seasonPass.season}: {seasonPass.name}
@@ -23,7 +24,7 @@ export default function SeasonPass() {
       }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(255,215,0,0.04) 0%, transparent 60%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎫</div>
+          <Ticket size={48} color="url(#goldGrad)" style={{ marginBottom: 12 }} />
           <div className="shimmer-text" style={{ fontSize: 24, fontWeight: 900, marginBottom: 4 }}>
             {seasonPass.name}
           </div>
@@ -68,10 +69,10 @@ export default function SeasonPass() {
               </div>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ color: '#888', fontSize: 12 }}>
-                  🆓 <span style={{ color: i < 2 ? '#ccc' : '#555' }}>{tier.free}</span>
+                  FREE <span style={{ color: i < 2 ? '#ccc' : '#555' }}>{tier.free}</span>
                 </div>
                 <div style={{ color: '#888', fontSize: 12 }}>
-                  💎 <span style={{ color: i < 2 ? 'var(--gold)' : '#555' }}>{tier.premium}</span>
+                  <Diamond size={14} color="url(#goldGrad)" style={{ verticalAlign: 'middle' }} /> <span style={{ color: i < 2 ? 'var(--gold)' : '#555' }}>{tier.premium}</span>
                 </div>
               </div>
             </div>
@@ -89,8 +90,8 @@ export default function SeasonPass() {
 
       <div style={{ marginTop: 28, textAlign: 'center' }}>
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          className="btn-primary" style={{ padding: '16px 48px', fontSize: 16, letterSpacing: 2, animation: 'glow-intense-pulse 2s ease-in-out infinite' }}>
-          💎 UPGRADE TO PREMIUM — $19.99
+          className="btn-primary" style={{ padding: '16px 48px', fontSize: 16, letterSpacing: 2, animation: 'glow-intense-pulse 2s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Diamond size={20} color="url(#goldGrad)" /> UPGRADE TO PREMIUM — $19.99
         </motion.button>
       </div>
     </div>

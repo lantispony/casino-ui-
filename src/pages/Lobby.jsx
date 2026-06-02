@@ -1,18 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { games, banners, userStats, dailyRewards, missions } from '../data/games';
+import {
+  Coin, Star, Coins as CoinsIcon, ChartLineUp, Target, GameController,
+  CaretRight, CalendarCheck, Crown, Ticket, ShoppingCart, Trophy, Sword,
+  Confetti, Diamond, Lightning, CurrencyDollar, Compass, Cards, DiceFive, Fish
+} from '@phosphor-icons/react';
+import { games, banners, userStats, missions } from '../data/games';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
 import Beams from '../components/animations/Beams';
+
+function RollingNumber({ value, duration = 800 }) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  const rafRef = useRef();
+
+  useEffect(() => {
+    const start = prevRef.current;
+    const end = value;
+    if (start === end) return;
+    const startTime = performance.now();
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + (end - start) * eased);
+      setDisplay(current);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        prevRef.current = end;
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value, duration]);
+
+  return display.toLocaleString('en-US');
+}
 
 export default function Lobby() {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [showWin, setShowWin] = useState(false);
   const [showCoins, setShowCoins] = useState(false);
   const [jackpot, setJackpot] = useState(12847392);
-
-  // 暫停輪播，只顯示第一張 Banner
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,9 +68,7 @@ export default function Lobby() {
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        style={{
-          display: 'flex', justifyContent: 'center', marginBottom: 24,
-        }}
+        style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}
       >
         <div style={{
           display: 'flex', alignItems: 'center', gap: 20,
@@ -46,18 +76,16 @@ export default function Lobby() {
           border: '1px solid rgba(255,215,0,0.2)', borderRadius: 16,
           padding: '14px 32px', backdropFilter: 'blur(10px)',
         }}>
-          <div style={{ fontSize: 32, animation: 'float 2s ease-in-out infinite' }}>🎰</div>
+          <Coin size={32} color="url(#goldGrad)" weight="bold" />
           <div style={{ textAlign: 'center' }}>
             <div style={{ color: '#666', fontSize: 10, letterSpacing: 4, fontWeight: 600 }}>PROGRESSIVE JACKPOT</div>
-            <motion.div
-              key={jackpot}
-              initial={{ scale: 1.05 }}
-              animate={{ scale: 1 }}
-              className="jackpot-text"
-              style={{ fontSize: 36, fontWeight: 900, letterSpacing: 2 }}
-            >
-              ${jackpot.toLocaleString()}
-            </motion.div>
+            <div style={{
+              fontSize: 36, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif",
+              fontVariantNumeric: 'tabular-nums', letterSpacing: 2, whiteSpace: 'nowrap',
+              minWidth: 300,
+            }}>
+              <span>$<RollingNumber value={jackpot} /></span>
+            </div>
           </div>
           <button onClick={triggerWin} style={{
             background: 'linear-gradient(135deg, #FF4500, #FF0000)',
@@ -68,21 +96,8 @@ export default function Lobby() {
           }}>
             DEMO WIN ▶
           </button>
-            </div>
-            {/* Indicators */}
-            <div style={{
-              position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
-              display: 'flex', gap: 8, zIndex: 3,
-            }}>
-              {banners.map((_, i) => (
-                <div key={i} onClick={() => setCurrentBanner(i)} style={{
-                  height: 8, borderRadius: 4, cursor: 'pointer', transition: 'all 0.3s',
-                  background: i === currentBanner ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
-                  width: i === currentBanner ? 28 : 8,
-                }} />
-              ))}
-            </div>
-          </motion.div>
+        </div>
+      </motion.div>
 
       {/* === HERO BANNER === */}
       <section style={{ marginBottom: 30, position: 'relative' }}>
@@ -101,20 +116,31 @@ export default function Lobby() {
           >
             {currentBanner === 0 && (
               <div style={{ position: 'absolute', inset: 0 }}>
-              <Beams
-                beamWidth={3}
-                beamHeight={50}
-                beamNumber={48}
-                lightColor="#ffcf57"
-                speed={3.1}
-                noiseIntensity={0.25}
-                scale={0.3}
-                rotation={45}
-                lightIntensity={3}
-              />
+                <Beams
+                  beamWidth={3} beamHeight={50} beamNumber={48}
+                  lightColor="#ffcf57" speed={3.1}
+                  noiseIntensity={0.25} scale={0.3} rotation={45} lightIntensity={3}
+                />
               </div>
             )}
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: 600 }}>
+
+            {/* Banner image inside card (right side, no bleed) */}
+            {currentBanner > 0 && banners[currentBanner].image && (
+              <div style={{
+                position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1,
+                WebkitMaskImage: 'linear-gradient(to left, black 30%, transparent 100%)',
+                maskImage: 'linear-gradient(to left, black 30%, transparent 100%)',
+              }}>
+                <img src={banners[currentBanner].image} alt=""
+                  style={{
+                    height: '100%', width: '100%', objectFit: 'cover',
+                    objectPosition: 'center center',
+                    transform: currentBanner === 1 ? 'scale(0.85)' : undefined,
+                  }} />
+              </div>
+            )}
+
+            <div style={{ position: 'relative', zIndex: 2, maxWidth: 600 }}>
               <div style={{
                 display: 'inline-block', padding: '4px 16px', borderRadius: 20,
                 background: 'linear-gradient(135deg, #FF4500, #FF0000)', color: '#fff',
@@ -149,38 +175,54 @@ export default function Lobby() {
               </motion.div>
             </div>
           </motion.div>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: 24,
-            border: '1px solid rgba(255,215,0,0.2)',
-            pointerEvents: 'none', zIndex: 10,
-          }} />
         </AnimatePresence>
 
-        {/* Image - outside overflow:hidden card to allow top/right bleed */}
+        {/* Border overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: 24,
+          border: '1px solid rgba(255,215,0,0.2)',
+          pointerEvents: 'none', zIndex: 10,
+        }} />
+
+        {/* Banner 1 bleed image */}
         {currentBanner === 0 && (
           <>
-          <div style={{
-            position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
-            overflow: 'hidden',             zIndex: 11, pointerEvents: 'none',
-            WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-            WebkitMaskComposite: 'intersect',
-            maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
-            maskComposite: 'intersect',
-          }}>
-            <img src="/images/gold_black_025.png" alt=""
-              style={{
-                position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
-                objectFit: 'cover', objectPosition: 'top right',
-              }} />
-          </div>
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-            borderRadius: '0 0 24px 24px',
-            background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
-            pointerEvents: 'none', zIndex: 3,
-          }} />
+            <div style={{
+              position: 'absolute', right: '-10%', top: '-80px', bottom: 0, width: '70%',
+              overflow: 'hidden', zIndex: 11, pointerEvents: 'none',
+              WebkitMaskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+              WebkitMaskComposite: 'intersect',
+              maskImage: 'linear-gradient(to left, transparent 0%, black 15%, black 60%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 15%)',
+              maskComposite: 'intersect',
+            }}>
+              <img src="/images/gold_black_025.png" alt=""
+                style={{
+                  position: 'absolute', right: 0, top: 0, width: 'auto', height: '150%',
+                  objectFit: 'cover', objectPosition: 'top right',
+                }} />
+            </div>
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
+              borderRadius: '0 0 24px 24px',
+              background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
+              pointerEvents: 'none', zIndex: 3,
+            }} />
           </>
         )}
+
+        {/* Navigation dots */}
+        <div style={{
+          position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+          display: 'flex', gap: 8, zIndex: 12,
+        }}>
+          {banners.map((_, i) => (
+            <div key={i} onClick={() => setCurrentBanner(i)} style={{
+              height: 8, borderRadius: 4, cursor: 'pointer', transition: 'all 0.3s',
+              background: i === currentBanner ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
+              width: i === currentBanner ? 28 : 8,
+            }} />
+          ))}
+        </div>
       </section>
 
       {/* === QUICK STATS === */}
@@ -188,10 +230,10 @@ export default function Lobby() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 32,
       }}>
         {[
-          { icon: '⭐', label: 'YOUR STATUS', value: userStats.level, glow: 'var(--glow-gold)' },
-          { icon: '💰', label: 'BALANCE', value: `$${userStats.balance.toLocaleString()}`, glow: 'var(--glow-gold)' },
-          { icon: '📈', label: "TODAY'S PROFIT", value: `+$${userStats.todayProfit.toLocaleString()}`, color: '#00FF7F' },
-          { icon: '🎯', label: 'DAILY REWARD', value: 'CLAIM →', link: '/rewards' },
+          { icon: Star, label: 'YOUR STATUS', value: userStats.level, glow: 'var(--glow-gold)' },
+          { icon: CoinsIcon, label: 'BALANCE', value: `$${userStats.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, glow: 'var(--glow-gold)' },
+          { icon: ChartLineUp, label: "TODAY'S PROFIT", value: `+$${userStats.todayProfit.toLocaleString()}`, color: '#00FF7F' },
+          { icon: Target, label: 'DAILY REWARD', value: 'CLAIM →', link: '/rewards' },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -205,7 +247,7 @@ export default function Lobby() {
               boxShadow: s.glow || 'none',
             }}
           >
-            <span style={{ fontSize: 28 }}>{s.icon}</span>
+            <s.icon size={28} color="url(#goldGrad)" />
             <div>
               <div style={{ color: '#666', fontSize: 9, letterSpacing: 2, fontWeight: 600 }}>{s.label}</div>
               {s.link ? (
@@ -230,8 +272,9 @@ export default function Lobby() {
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20,
         }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: 1 }}>
-            🎮 GAMES
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <GameController size={24} color="url(#goldGrad)" />
+            GAMES
           </h2>
           <div style={{ display: 'flex', gap: 10 }}>
             {['ALL', 'SLOTS', 'TABLE', 'LOTTERY'].map((t) => (
@@ -267,19 +310,13 @@ export default function Lobby() {
                 boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                 transition: 'all 0.3s', position: 'relative', overflow: 'hidden',
               }}>
-                {/* Hover glow */}
                 <div style={{
                   position: 'absolute', inset: 0, borderRadius: 16,
                   background: 'radial-gradient(ellipse at 50% 100%, rgba(255,215,0,0.03) 0%, transparent 60%)',
                   pointerEvents: 'none',
                 }} />
 
-                <div style={{
-                  fontSize: 42, flexShrink: 0, width: 60, textAlign: 'center',
-                  filter: 'drop-shadow(0 0 10px rgba(255,215,0,0.3))',
-                }}>
-                  {game.icon}
-                </div>
+                <GameIcon phIcon={game.phIcon} />
 
                 <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
@@ -299,12 +336,7 @@ export default function Lobby() {
                   <div style={{ color: '#777', fontSize: 12, lineHeight: 1.4 }}>{game.description}</div>
                 </div>
 
-                <div style={{
-                  fontSize: 20, color: 'var(--gold)', flexShrink: 0,
-                  opacity: 0.5, transition: 'all 0.3s',
-                }}>
-                  ▶
-                </div>
+                <CaretRight size={20} color="var(--gold)" style={{ flexShrink: 0, opacity: 0.5 }} />
               </Link>
             </motion.div>
           ))}
@@ -316,14 +348,14 @@ export default function Lobby() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 40,
       }}>
         {[
-          { path: '/rewards', icon: '📅', title: 'DAILY REWARDS', sub: 'Check in & collect', color: '#FFD700' },
-          { path: '/vip', icon: '⭐', title: 'VIP CLUB', sub: 'Exclusive perks', color: '#FF8C00' },
-          { path: '/season-pass', icon: '🎫', title: 'SEASON PASS', sub: 'Season 3 active', color: '#00BFFF' },
-          { path: '/shop', icon: '🛒', title: 'SHOP', sub: 'Coins & bundles', color: '#00FF7F' },
-          { path: '/missions', icon: '🎯', title: 'MISSIONS', sub: `${missions.filter(m => m.progress >= m.total).length}/${missions.length} done`, color: '#9B30FF' },
-          { path: '/rankings', icon: '🏆', title: 'LEADERBOARD', sub: 'Top players', color: '#FFD700' },
-          { path: '/guilds', icon: '⚔️', title: 'GUILDS', sub: 'Join a crew', color: '#FF4500' },
-          { path: '/events', icon: '🎉', title: 'EVENTS', sub: 'Limited time', color: '#FF69B4' },
+          { path: '/rewards', icon: CalendarCheck, title: 'DAILY REWARDS', sub: 'Check in & collect', color: '#FFD700' },
+          { path: '/vip', icon: Crown, title: 'VIP CLUB', sub: 'Exclusive perks', color: '#FF8C00' },
+          { path: '/season-pass', icon: Ticket, title: 'SEASON PASS', sub: 'Season 3 active', color: '#00BFFF' },
+          { path: '/shop', icon: ShoppingCart, title: 'SHOP', sub: 'Coins & bundles', color: '#00FF7F' },
+          { path: '/missions', icon: Target, title: 'MISSIONS', sub: `${missions.filter(m => m.progress >= m.total).length}/${missions.length} done`, color: '#9B30FF' },
+          { path: '/rankings', icon: Trophy, title: 'LEADERBOARD', sub: 'Top players', color: '#FFD700' },
+          { path: '/guilds', icon: Sword, title: 'GUILDS', sub: 'Join a crew', color: '#FF4500' },
+          { path: '/events', icon: Confetti, title: 'EVENTS', sub: 'Limited time', color: '#FF69B4' },
         ].map((item) => (
           <motion.div key={item.path} whileHover={{ y: -4 }}>
             <Link to={item.path} style={{
@@ -331,11 +363,7 @@ export default function Lobby() {
               background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,215,0,0.08)',
               borderRadius: 12, padding: '16px 18px', transition: 'all 0.3s',
             }}>
-              <span style={{
-                fontSize: 24, filter: `drop-shadow(0 0 6px ${item.color}44)`,
-              }}>
-                {item.icon}
-              </span>
+              <item.icon size={24} color="url(#goldGrad)" />
               <div>
                 <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{item.title}</div>
                 <div style={{ color: '#666', fontSize: 11 }}>{item.sub}</div>
@@ -366,17 +394,19 @@ export default function Lobby() {
           position: 'relative', zIndex: 1,
         }}>
           {[
-            { icon: '💎', title: 'PREMIUM DESIGN', desc: 'Cinematic visuals with ultra-premium gold aesthetic' },
-            { icon: '🎰', title: 'BIGGEST JACKPOTS', desc: 'Progressive prizes that keep growing every second' },
-            { icon: '⚡', title: 'INSTANT REWARDS', desc: 'Real-time win animations with spectacular effects' },
-            { icon: '💎', title: 'VIP EXPERIENCE', desc: 'Exclusive tiers with massive cashback & bonuses' },
+            { icon: Diamond, title: 'PREMIUM DESIGN', desc: 'Cinematic visuals with ultra-premium gold aesthetic' },
+            { icon: CoinsIcon, title: 'BIGGEST JACKPOTS', desc: 'Progressive prizes that keep growing every second' },
+            { icon: Lightning, title: 'INSTANT REWARDS', desc: 'Real-time win animations with spectacular effects' },
+            { icon: Diamond, title: 'VIP EXPERIENCE', desc: 'Exclusive tiers with massive cashback & bonuses' },
           ].map((f) => (
             <div key={f.title} style={{
               textAlign: 'center', padding: '24px 16px',
               background: 'rgba(255,255,255,0.02)', borderRadius: 14,
               border: '1px solid rgba(255,215,0,0.06)',
             }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>{f.icon}</div>
+              <div style={{ marginBottom: 12 }}>
+                <f.icon size={40} color="url(#goldGrad)" />
+              </div>
               <div style={{ color: 'var(--gold)', fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{f.title}</div>
               <div style={{ color: '#666', fontSize: 12, lineHeight: 1.5 }}>{f.desc}</div>
             </div>
@@ -406,7 +436,8 @@ export default function Lobby() {
               padding: '16px 40px', fontSize: 16, letterSpacing: 1, textDecoration: 'none',
               display: 'inline-flex', alignItems: 'center', gap: 10,
             }}>
-              💰 DEPOSIT NOW
+              <CurrencyDollar size={20} color="#000" weight="bold" />
+              DEPOSIT NOW
             </Link>
             <Link to="/events" style={{
               background: 'transparent', color: 'var(--gold)', fontWeight: 700,
@@ -414,11 +445,21 @@ export default function Lobby() {
               border: '1px solid rgba(255,215,0,0.3)', textDecoration: 'none',
               display: 'inline-flex', alignItems: 'center', gap: 10,
             }}>
-              🎉 VIEW EVENTS
+              <Confetti size={20} color="url(#goldGrad)" />
+              VIEW EVENTS
             </Link>
           </div>
         </div>
       </section>
     </div>
   );
+}
+
+function GameIcon({ phIcon }) {
+  const iconMap = {
+    Coin, Compass: Compass, Cards: Cards, DiceFive: DiceFive, Fish: Fish, Target
+  };
+  const Icon = iconMap[phIcon];
+  if (!Icon) return null;
+  return <Icon size={42} color="url(#goldGrad)" weight="bold" />;
 }

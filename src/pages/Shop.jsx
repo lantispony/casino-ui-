@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ShoppingCart, Check } from '@phosphor-icons/react';
 import { shopItems } from '../data/games';
 import CoinRain from '../components/animations/CoinRain';
 
@@ -17,8 +18,8 @@ export default function Shop() {
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
       <CoinRain active={showCoins} />
 
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4 }}>
-        🛒 SHOP
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <ShoppingCart size={28} color="url(#goldGrad)" /> SHOP
       </div>
       <p style={{ color: '#777', fontSize: 14, marginBottom: 32 }}>
         Fuel your gameplay with coin packs and exclusive bundles.
@@ -67,10 +68,10 @@ export default function Shop() {
               ${item.price.toLocaleString()}
             </motion.button>
             {purchased === item.id && (
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                style={{ marginTop: 8, color: '#00FF7F', fontSize: 12, fontWeight: 700 }}>
-                ✓ PURCHASED!
-              </motion.div>
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  style={{ marginTop: 8, color: '#00FF7F', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <Check size={12} color="#00FF7F" /> PURCHASED!
+                </motion.div>
             )}
           </motion.div>
         ))}

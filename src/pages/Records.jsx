@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ChartBar, CurrencyDollar, CreditCard, GameController, ChartLineUp } from '@phosphor-icons/react';
 import { transactions } from '../data/games';
 
 const typeColors = {
@@ -26,20 +27,20 @@ export default function Records() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 1000, margin: '0 auto' }}>
       <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4 }}>
-        📊 TRANSACTION HISTORY
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ChartBar size={28} color="url(#goldGrad)" /> TRANSACTION HISTORY</span>
       </div>
       <p style={{ color: '#777', fontSize: 14, marginBottom: 28 }}>View all your deposits, withdrawals, and game records</p>
 
       {/* Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
         {[
-          { label: 'TOTAL DEPOSIT', value: '$560,000', icon: '💰', color: '#00FF7F' },
-          { label: 'TOTAL WITHDRAW', value: '$327,000', icon: '💳', color: '#FFD700' },
-          { label: 'NET GAMING', value: '-$120,000', icon: '🎮', color: '#FF4444' },
-          { label: 'NET PROFIT', value: '+$113,000', icon: '📈', color: '#00FF7F' },
+          { label: 'TOTAL DEPOSIT', value: '$560,000', icon: CurrencyDollar, color: '#00FF7F' },
+          { label: 'TOTAL WITHDRAW', value: '$327,000', icon: CreditCard, color: '#FFD700' },
+          { label: 'NET GAMING', value: '-$120,000', icon: GameController, color: '#FF4444' },
+          { label: 'NET PROFIT', value: '+$113,000', icon: ChartLineUp, color: '#00FF7F' },
         ].map(s => (
           <div key={s.label} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,215,0,0.06)', borderRadius: 12, padding: '18px', textAlign: 'center' }}>
-            <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><s.icon size={24} color="url(#goldGrad)" /></div>
             <div style={{ color: s.color, fontSize: 20, fontWeight: 800 }}>{s.value}</div>
             <div style={{ color: '#666', fontSize: 11, marginTop: 2 }}>{s.label}</div>
           </div>

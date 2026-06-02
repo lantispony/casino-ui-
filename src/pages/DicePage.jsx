@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
+import { DiceFive, TrendUp, TrendDown, Target, Book } from '@phosphor-icons/react';
 
 const faces = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' };
 
@@ -36,6 +37,8 @@ export default function DicePage() {
     } }, 100);
   };
 
+  const predIcons = { big: <TrendUp size={20} color="url(#goldGrad)" />, small: <TrendDown size={20} color="url(#goldGrad)" />, triple: <Target size={20} color="url(#goldGrad)" /> };
+
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
       <WinAnimation show={showWin} amount={lastWin} onComplete={() => setShowWin(false)} />
@@ -43,7 +46,7 @@ export default function DicePage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 28 }}>
         <div>
-          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2 }}>🎲 SIC BO</div>
+          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 12 }}><DiceFive size={32} color="url(#goldGrad)" /> SIC BO</div>
           <div style={{ color: 'var(--gold)', fontSize: 12, fontWeight: 600, letterSpacing: 3, marginTop: 2 }}>ROLL THE BONES</div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -100,9 +103,9 @@ export default function DicePage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             {[
-              { key: 'big', label: 'BIG', sub: '11-18', icon: '📈', odds: 'x2' },
-              { key: 'small', label: 'SMALL', sub: '4-10', icon: '📉', odds: 'x2' },
-              { key: 'triple', label: 'TRIPLE', sub: 'All Same', icon: '🎯', odds: 'x24' },
+              { key: 'big', label: 'BIG', sub: '11-18', odds: 'x2' },
+              { key: 'small', label: 'SMALL', sub: '4-10', odds: 'x2' },
+              { key: 'triple', label: 'TRIPLE', sub: 'All Same', odds: 'x24' },
             ].map(p => (
               <motion.button key={p.key} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                 onClick={() => rollDice(p.key)}
@@ -114,7 +117,7 @@ export default function DicePage() {
                   background: prediction === p.key && !rolling ? 'rgba(255,215,0,0.1)' : 'transparent',
                   color: 'var(--gold)', transition: 'all 0.3s',
                 }}>
-                <span style={{ fontSize: 20 }}>{p.icon}</span>
+                <span style={{ fontSize: 20 }}>{predIcons[p.key]}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{p.label}</span>
                 <span style={{ fontSize: 9, color: '#666' }}>{p.sub}</span>
                 <span style={{ fontSize: 10, color: '#FFD700', fontWeight: 700 }}>{p.odds}</span>
@@ -134,7 +137,7 @@ export default function DicePage() {
         marginTop: 32, background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24,
       }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>📖 GAME INFO</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><Book size={20} color="url(#goldGrad)" /> GAME INFO</div>
         <p style={{ color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           Three dice, endless possibilities. Bet Big (11-18), Small (4-10), or Triple (all three match).
           This is a UI demo only — no real gambling or cashouts possible.

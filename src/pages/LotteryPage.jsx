@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
+import { Target, Clock, Book } from '@phosphor-icons/react';
 
 const allNums = Array.from({ length: 80 }, (_, i) => i + 1);
 
@@ -61,7 +62,7 @@ export default function LotteryPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900 }}>🎯 INSTANT LOTTERY</div>
+          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 12 }}><Target size={32} color="url(#goldGrad)" /> INSTANT LOTTERY</div>
           <div style={{ color: 'var(--gold)', fontSize: 12, fontWeight: 600, letterSpacing: 3, marginTop: 2 }}>EVERY MINUTE WINS</div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

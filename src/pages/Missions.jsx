@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import { missions } from '../data/games';
+import { Target, Check } from '@phosphor-icons/react';
 
 export default function Missions() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 900, margin: '0 auto' }}>
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4 }}>
-        🎯 MISSIONS
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Target size={28} color="url(#goldGrad)" /> MISSIONS
       </div>
       <p style={{ color: '#777', fontSize: 14, marginBottom: 32 }}>
         Complete missions to earn bonus coins and climb the ranks.
@@ -55,7 +56,7 @@ export default function Missions() {
                 </div>
               </div>
               {done ? (
-                <div style={{ color: '#00FF7F', fontSize: 12, fontWeight: 700 }}>DONE ✓</div>
+                <div style={{ color: '#00FF7F', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>DONE <Check size={12} color="#00FF7F" /></div>
               ) : (
                 <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   className="btn-primary" style={{

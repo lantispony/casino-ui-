@@ -1,0 +1,27 @@
+Cinzel Decorative w900
+
+Logo、Win Overlay、Poster 大標題、遊戲頁大標題
+
+
+
+RalewaySection
+ 
+header、Badge label、Card sub-title、表單 Label、Footer 欄位標頭
+
+
+
+Inter
+
+分類名稱、遊戲標題、一般玩家ID、帳號頁面、Footer 內文、UI 說明文字
+
+
+
+Playfair Display w700
+
+Play now 按鈕、排行榜玩家名稱（限定）
+
+
+
+Rajdhani w700
+
+所有數字（Jackpot、倒數、餘額、倍率、Multiplier）

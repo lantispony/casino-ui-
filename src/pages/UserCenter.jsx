@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
+import { CurrencyDollar, CreditCard, ChartLineUp, CalendarCheck, Gear, User, Lock, Bell, Globe, ChartBar } from '@phosphor-icons/react';
 import { userStats } from '../data/games';
 
 export default function UserCenter() {
   const stats = [
-    { label: 'Total Deposit', value: userStats.totalDeposit, icon: '💰', color: '#00FF7F' },
-    { label: 'Total Withdraw', value: userStats.totalWithdraw, icon: '💳', color: '#FFD700' },
-    { label: "Today's Profit", value: userStats.todayProfit, icon: '📈', color: userStats.todayProfit >= 0 ? '#00FF7F' : '#FF0000' },
-    { label: 'Member Since', value: userStats.memberSince, icon: '📅', color: '#888' },
+    { label: 'Total Deposit', value: userStats.totalDeposit, icon: CurrencyDollar, color: '#00FF7F' },
+    { label: 'Total Withdraw', value: userStats.totalWithdraw, icon: CreditCard, color: '#FFD700' },
+    { label: "Today's Profit", value: userStats.todayProfit, icon: ChartLineUp, color: userStats.todayProfit >= 0 ? '#00FF7F' : '#FF0000' },
+    { label: 'Member Since', value: userStats.memberSince, icon: CalendarCheck, color: '#888' },
   ];
+
+
 
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 1000, margin: '0 auto' }}>
@@ -52,7 +55,7 @@ export default function UserCenter() {
               background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,215,0,0.08)',
               borderRadius: 12, padding: '20px', textAlign: 'center',
             }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><s.icon size={28} color="url(#goldGrad)" /></div>
             <div style={{ color: s.color, fontSize: 22, fontWeight: 800 }}>
               {typeof s.value === 'number' ? `$${s.value.toLocaleString()}` : s.value}
             </div>
@@ -67,15 +70,15 @@ export default function UserCenter() {
         borderRadius: 14, overflow: 'hidden',
       }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,215,0,0.06)', color: 'var(--gold)', fontWeight: 700, fontSize: 14, letterSpacing: 1 }}>
-          ⚙️ ACCOUNT SETTINGS
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Gear size={14} color="url(#goldGrad)" /> ACCOUNT SETTINGS</span>
         </div>
         {[
-          { icon: '👤', label: 'Profile', desc: 'Edit username, avatar, personal info' },
-          { icon: '🔒', label: 'Security', desc: 'Password, 2FA, login history' },
-          { icon: '💳', label: 'Payment Methods', desc: 'Bank accounts, USDT wallet' },
-          { icon: '🔔', label: 'Notifications', desc: 'Promotions, win alerts, updates' },
-          { icon: '🌐', label: 'Language', desc: 'English / 中文 / 日本語 / 한국어' },
-          { icon: '📊', label: 'Game History', desc: 'View your complete betting history' },
+          { icon: User, label: 'Profile', desc: 'Edit username, avatar, personal info' },
+          { icon: Lock, label: 'Security', desc: 'Password, 2FA, login history' },
+          { icon: CreditCard, label: 'Payment Methods', desc: 'Bank accounts, USDT wallet' },
+          { icon: Bell, label: 'Notifications', desc: 'Promotions, win alerts, updates' },
+          { icon: Globe, label: 'Language', desc: 'English / 中文 / 日本語 / 한국어' },
+          { icon: ChartBar, label: 'Game History', desc: 'View your complete betting history' },
         ].map((s) => (
           <div key={s.label} style={{
             display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px',

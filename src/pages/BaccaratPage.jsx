@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
+import { Cards, Book } from '@phosphor-icons/react';
 
 const suits = ['♠', '♥', '♦', '♣'];
 const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
@@ -65,7 +66,7 @@ export default function BaccaratPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 28 }}>
         <div>
-          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2 }}>🃏 BACCARAT SUPREME</div>
+          <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 12 }}><Cards size={32} color="url(#goldGrad)" /> BACCARAT SUPREME</div>
           <div style={{ color: 'var(--gold)', fontSize: 12, fontWeight: 600, letterSpacing: 3, marginTop: 2 }}>PLAYER VS BANKER</div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -189,7 +190,7 @@ export default function BaccaratPage() {
         marginTop: 32, background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24,
       }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>📖 GAME INFO</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}><Book size={20} color="url(#goldGrad)" /> GAME INFO</div>
         <p style={{ color: '#666', fontSize: 13, lineHeight: 1.7 }}>
           Classic baccarat. Bet on Player, Banker, or Tie. Closest to 9 wins.
           This is a UI demo only — no real gambling or cashouts possible.

@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import { vipTiers } from '../data/games';
+import { Crown, Gift, Check } from '@phosphor-icons/react';
 
 export default function VIP() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 1000, margin: '0 auto' }}>
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4 }}>
-        👑 VIP CLUB
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Crown size={28} color="url(#goldGrad)" /> VIP CLUB
       </div>
       <p style={{ color: '#777', fontSize: 14, marginBottom: 32 }}>
         Exclusive perks, higher cashback, and premium treatment for our top players.
@@ -18,7 +19,7 @@ export default function VIP() {
         marginBottom: 28, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
         boxShadow: '0 0 30px rgba(255,215,0,0.08)',
       }}>
-        <div style={{ fontSize: 64, filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))' }}>👑</div>
+        <Crown size={64} color="#FFD700" style={{ filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))', flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
           <div style={{ color: '#888', fontSize: 10, letterSpacing: 2, marginBottom: 2 }}>YOUR STATUS</div>
           <div style={{ color: '#FFD700', fontSize: 24, fontWeight: 900 }}>Gold VIP</div>
@@ -73,7 +74,7 @@ export default function VIP() {
         marginTop: 32, background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,215,0,0.08)', borderRadius: 14, padding: 24,
       }}>
-        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 12 }}>🎁 VIP BENEFITS</div>
+        <div style={{ color: 'var(--gold)', fontSize: 14, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Gift size={16} color="url(#goldGrad)" /> VIP BENEFITS</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
           {[
             'Personal Account Manager',
@@ -86,7 +87,7 @@ export default function VIP() {
             'Custom Reward Options',
           ].map(p => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#888', fontSize: 13 }}>
-              <span style={{ color: '#00FF7F' }}>✓</span> {p}
+              <Check size={14} color="#00FF7F" /> {p}
             </div>
           ))}
         </div>

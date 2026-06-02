@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 import { events } from '../data/games';
+import { Confetti, Crown, Diamond, Star } from '@phosphor-icons/react';
 
 export default function Events() {
   return (
     <div style={{ padding: '24px 32px 50px', maxWidth: 1000, margin: '0 auto' }}>
-      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, textAlign: 'center' }}>
-        🎉 EVENTS
+      <div className="jackpot-text" style={{ fontSize: 32, fontWeight: 900, letterSpacing: 2, marginBottom: 4, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <Confetti size={28} color="url(#goldGrad)" /> EVENTS
       </div>
       <p style={{ color: '#777', fontSize: 14, textAlign: 'center', marginBottom: 32 }}>
         Limited-time promotions and tournaments with massive prizes
@@ -47,16 +48,16 @@ export default function Events() {
       }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.04) 0%, transparent 60%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 className="shimmer-text" style={{ fontSize: 26, fontWeight: 900, marginBottom: 8 }}>👑 VIP PROGRAM</h2>
+          <h2 className="shimmer-text" style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}><Crown size={24} color="url(#goldGrad)" /> VIP PROGRAM</h2>
           <p style={{ color: '#888', fontSize: 13, marginBottom: 28, maxWidth: 500, margin: '0 auto 28px' }}>
             Exclusive VIP tiers with increasing cashback, bonuses, and personal account manager
           </p>
 
           <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
-              { name: 'Gold', icon: '👑', deposit: 'From $50k', color: '#FFD700', perks: '5% cashback • $2k bonus' },
-              { name: 'Platinum', icon: '💎', deposit: 'From $200k', color: '#E5E4E2', perks: '8% cashback • $10k bonus' },
-              { name: 'Diamond', icon: '🌟', deposit: 'From $500k', color: '#00BFFF', perks: '12% cashback • $50k bonus' },
+              { name: 'Gold', icon: <Crown size={32} color="url(#goldGrad)" />, deposit: 'From $50k', color: '#FFD700', perks: '5% cashback • $2k bonus' },
+              { name: 'Platinum', icon: <Diamond size={32} color="url(#goldGrad)" />, deposit: 'From $200k', color: '#E5E4E2', perks: '8% cashback • $10k bonus' },
+              { name: 'Diamond', icon: <Star size={32} color="url(#goldGrad)" />, deposit: 'From $500k', color: '#00BFFF', perks: '12% cashback • $50k bonus' },
             ].map(t => (
               <div key={t.name} style={{
                 background: 'rgba(255,255,255,0.02)', border: `1px solid ${t.color}22`,
