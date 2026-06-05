@@ -465,7 +465,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
       <div class="picon" id="pIcon"></div>
     </div>
   </div>
-  <span style="position:absolute;bottom:6px;right:10px;font:10px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.25);letter-spacing:0.5px;pointer-events:none">v1.1.1</span>
+  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.1</span>
 </div>
 
 <!-- ===== RIGHT ===== -->
@@ -680,7 +680,14 @@ document.getElementById('fxModalConfirm').addEventListener('click',()=>{
 document.getElementById('fxModalCancel').addEventListener('click',()=>{document.getElementById('fxSaveModal').style.display='none';});
 
 // ---- Gradient saved ----
-function loadSaved(){try{return JSON.parse(localStorage.getItem(LS_KEY))||[];}catch{return [];}}
+const DEFAULT_SAVED=[
+  {name:'Gold Card',type:'linear',angle:135,stops:[{color:'#0A001A',alpha:1,pos:0},{color:'#FFD700',alpha:1,pos:100}]},
+  {name:'Warm Text',type:'linear',angle:90,stops:[{color:'#FFD700',alpha:1,pos:0},{color:'#FF6B00',alpha:1,pos:100}]},
+  {name:'Icon Glow',type:'linear',angle:45,stops:[{color:'#FF0040',alpha:1,pos:0},{color:'#FFD700',alpha:1,pos:100}]},
+  {name:'Deep Ocean',type:'linear',angle:180,stops:[{color:'#001F3F',alpha:1,pos:0},{color:'#00BFFF',alpha:1,pos:100}]},
+  {name:'Neon',type:'linear',angle:0,stops:[{color:'#00FF88',alpha:1,pos:0},{color:'#0066FF',alpha:1,pos:100}]},
+];
+function loadSaved(){try{const d=JSON.parse(localStorage.getItem(LS_KEY));if(d&&d.length)return d;localStorage.setItem(LS_KEY,JSON.stringify(DEFAULT_SAVED));return DEFAULT_SAVED;}catch{return DEFAULT_SAVED;}}
 function saveSaved(l){localStorage.setItem(LS_KEY,JSON.stringify(l));}
 
 function renderRefSelects(){
