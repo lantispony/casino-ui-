@@ -84,7 +84,8 @@ button:active { transform:scale(0.96); }
 
 /* Preview */
 .pbox-wrap { position:relative; width:100%; max-width:640px; padding-top:24px; }
-.pbox-wrap .plbl { position:absolute; top:6px; left:10px; font-size:15px; font-weight:800; color:rgba(255,215,0,0.22); letter-spacing:2px; text-transform:uppercase; z-index:3; pointer-events:none; }
+.pbox-wrap .plbl { position:absolute; top:6px; left:10px; font-size:15px; font-weight:800; color:rgba(255,215,0,0.22); letter-spacing:2px; text-transform:uppercase; z-index:3; pointer-events:none; transition:color 0.2s; }
+.pbox-wrap .plbl.active { color:rgba(255,215,0,0.7); }
 .pbox { width:100%; border-radius:8px; border:1px solid rgba(255,215,0,0.06); background:rgba(255,255,255,0.07); position:relative; overflow:visible; display:flex; align-items:center; justify-content:center; }
 .pbox-card { height:100px; }
 .pbox-text { height:110px; }
@@ -446,7 +447,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
     <select class="lang-select" id="langSelect" style="position:static;width:auto;min-width:70px"><option value="en">EN</option><option value="zh">中文</option></select>
   </div>
   <div class="pbox-wrap">
-    <span class="plbl">Card</span>
+    <span class="plbl active">Card</span>
     <div class="pbox pbox-card" id="previewCard">
       <div style="width:100%;height:100%;position:absolute;inset:0;border-radius:8px;z-index:1" id="cardBgFill"></div>
     </div>
@@ -763,6 +764,9 @@ document.querySelectorAll('.tab').forEach(tab=>{
     this.classList.add('active');
     document.querySelectorAll('.tab-page').forEach(p=>p.style.display='none');
     document.getElementById('page-'+this.dataset.tab).style.display='block';
+    document.querySelectorAll('.pbox-wrap .plbl').forEach(l=>l.classList.remove('active'));
+    const idx=['card','text','icon'].indexOf(this.dataset.tab);
+    if(idx>=0)document.querySelectorAll('.pbox-wrap .plbl')[idx].classList.add('active');
     activeGrad=this.dataset.tab;
     loadGradToUI();updateOutput();
   });
