@@ -6,362 +6,1274 @@
 <title>漸層渲染器</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111; color: #eee; display: flex; height: 100vh; user-select: none; }
-.left { width: 420px; min-width: 420px; padding: 24px; border-right: 1px solid #333; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
-.right { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: #1a1a1a; }
-.preview { width: 100%; max-width: 700px; height: 400px; border-radius: 16px; border: 1px solid #333; transition: all 0.3s; }
+body { font-family: 'Inter','Noto Sans TC','Microsoft JhengHei','PingFang TC',-apple-system,BlinkMacSystemFont,sans-serif; background:#0A0A0A; color:#eee; display:flex; height:100vh; user-select:none; }
 
-h2 { font-size: 11px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-h3 { font-size: 10px; color: #666; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
-.group { display: flex; flex-direction: column; gap: 5px; }
-.row { display: flex; gap: 8px; align-items: center; }
-.row label { font-size: 12px; color: #aaa; white-space: nowrap; }
+.left { width:420px; min-width:420px; padding:18px 18px 16px 18px; overflow-y:auto; border-right:1px solid rgba(255,215,0,0.05); display:flex; flex-direction:column; gap:6px; scrollbar-width:none; }
+.left::-webkit-scrollbar { display:none; }
+.center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; gap:20px; overflow-y:auto; position:relative; }
+.right { width:340px; min-width:340px; padding:18px 18px 16px 18px; display:flex; flex-direction:column; gap:8px; border-left:1px solid rgba(255,215,0,0.05); overflow-y:auto; background:#0D0D0D; }
 
-input[type="text"], input[type="number"], select {
-  background: #222; border: 1px solid #333; border-radius: 6px; padding: 7px 10px; color: #eee; font-size: 13px; outline: none;
+.lang-select { position:absolute; top:12px; right:12px; z-index:10; background:#1a1a1a; border:1px solid rgba(255,215,0,0.12); border-radius:5px; padding:3px 8px; color:#FFD700; font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer; outline:none; }
+.lang-select:focus { border-color:rgba(255,215,0,0.35); }
+
+/* Section header: label + control underneath, consistent 6px gap */
+.sec { display:flex; flex-direction:column; gap:6px; }
+.sec-lbl { font-size:11px; color:rgba(255,215,0,0.6); letter-spacing:2px; text-transform:uppercase; font-weight:700; }
+
+h2 { font-size:13px; color:#FFD700; letter-spacing:3px; text-transform:uppercase; font-weight:700; margin-bottom:2px; }
+.lbl { font-size:11px; color:rgba(255,255,255,0.55); letter-spacing:1.5px; text-transform:uppercase; font-weight:700; }
+
+.group { display:flex; flex-direction:column; gap:8px; background:rgba(255,215,0,0.015); border:1px solid rgba(255,215,0,0.05); border-radius:8px; padding:12px 14px; }
+.group-dark { background:rgba(255,255,255,0.05); }
+.row { display:flex; gap:8px; align-items:center; }
+
+input[type="text"], input[type="number"], select, textarea {
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.12); border-radius:5px; padding:5px 8px; color:#f0f0f0; font-size:14px; outline:none; transition:border 0.2s; width:100%;
 }
-input[type="text"]:focus, select:focus { border-color: #FFD700; }
-input[type="range"] { width: 100%; accent-color: #FFD700; height: 4px; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #FFD700; cursor: pointer; }
-.angle-display { font-size: 12px; color: #FFD700; font-weight: 700; }
+input[type="number"] { -moz-appearance:textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+select { background:#1a1a1a; color:#f0f0f0; border:1px solid rgba(255,215,0,0.12); border-radius:5px; padding:5px 8px; font-size:14px; outline:none; }
+input:focus, select:focus, textarea:focus { border-color:rgba(255,215,0,0.35); }
+input[type="range"] { width:100%; accent-color:#FFD700; height:2px; background:rgba(255,255,255,0.05); border-radius:2px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; height:10px; width:10px; border-radius:50%; background:#FFD700; cursor:pointer; }
+input[type="checkbox"] { accent-color:#FFD700; width:15px; height:15px; cursor:pointer; flex-shrink:0; }
 
-/* === Gradient Bar === */
-.gradient-bar { height: 32px; border-radius: 6px; cursor: pointer; position: relative; border: 1px solid #333; background: repeating-conic-gradient(#1a1a1a 0% 25%, #2a2a2a 0% 50%) 0 0 / 12px 12px; overflow: hidden; margin-bottom: 4px; }
-.gradient-bar-fill { height: 100%; border-radius: 5px; position: relative; z-index: 1; }
+.tabs { display:flex; gap:3px; }
+.tab { padding:5px 14px; font-size:12px; font-weight:700; letter-spacing:1px; border:1px solid rgba(255,215,0,0.06); border-radius:5px; cursor:pointer; background:transparent; color:rgba(255,255,255,0.25); transition:all 0.2s; text-transform:uppercase; }
+.tab.active { background:rgba(255,215,0,0.06); border-color:rgba(255,215,0,0.15); color:#FFD700; }
+.tab:hover { border-color:rgba(255,215,0,0.12); color:rgba(255,255,255,0.5); }
 
-/* === Stop Markers === */
-.stop-markers { position: relative; height: 40px; }
-.stop-marker {
-  position: absolute; width: 36px; height: 38px; margin-left: -18px; z-index: 2;
-  display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
-}
-.stop-marker .op-row { display: flex; justify-content: center; gap: 0; width: 100%; height: 10px; }
-.stop-marker .op-btn {
-  font-size: 8px; cursor: pointer; color: #666; width: 12px; text-align: center; line-height: 10px; transition: color 0.15s;
-}
-.stop-marker .op-btn:hover { color: #FFD700; }
-.stop-marker .arrow-wrap { width: 100%; display: flex; justify-content: center; height: 10px; }
-.stop-marker .arrow {
-  width: 0; height: 0;
-  border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 10px solid #888;
-  transition: border-bottom-color 0.15s;
-}
-.stop-marker.active .arrow { border-bottom-color: #FFD700; }
-.stop-marker .op-val {
-  width: 100%; text-align: center; font-size: 9px; color: #999; line-height: 12px;
-  font-variant-numeric: tabular-nums;
-}
+.gbar-wrap { position:relative; display:flex; flex-direction:column; gap:0; border:1px solid rgba(255,215,0,0.06); border-radius:5px; }
+.gbar { height:40px; cursor:pointer; position:relative; overflow:hidden; background:repeating-conic-gradient(#1a1a1a 0% 25%,#2a2a2a 0% 50%) 0 0/8px 8px; }
+.gbar-fill { height:100%; position:relative; z-index:1; }
+.smarks { position:relative; height:20px; cursor:pointer; }
+.smark { position:absolute; width:12px; height:12px; margin-left:-6px; top:2px; z-index:3; cursor:ew-resize; }
+.smark-diamond { width:12px; height:12px; background:#888; clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%); transition:background 0.15s; }
+.smark.active .smark-diamond { background:#FFD700; }
 
-/* === Selected stop === */
-.selected-stop { background: #1a1a1a; border-radius: 8px; padding: 10px 12px; border: 1px solid #333; display: flex; flex-direction: column; gap: 8px; }
-.selected-stop .top-row { display: flex; gap: 10px; align-items: center; }
-.selected-stop .top-row input[type="color"] { width: 36px; height: 36px; border: none; border-radius: 4px; cursor: pointer; background: none; padding: 0; }
-.selected-stop .hex-input { flex: 1; }
-.selected-stop .pos-input { width: 65px; text-align: center; }
-.selected-stop .del-sel { cursor: pointer; color: #ff4444; font-size: 20px; width: 28px; text-align: center; }
-.selected-stop .alpha-row { display: flex; gap: 10px; align-items: center; padding-left: 2px; }
-.selected-stop .alpha-row label { font-size: 11px; color: #888; width: 50px; }
-.selected-stop .alpha-row input[type="range"] { flex: 1; height: 3px; }
-.selected-stop .alpha-row .alpha-val { font-size: 12px; color: #FFD700; font-weight: 700; width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+.sel-stop { background:rgba(255,215,0,0.02); border-radius:6px; padding:10px 12px; border:1px solid rgba(255,215,0,0.06); display:flex; flex-direction:column; gap:8px; }
+.sel-stop .sr { display:flex; gap:8px; align-items:center; }
+input[type="color"] { width:26px!important; height:26px!important; min-width:26px; border:none; outline:1px solid rgba(255,215,0,0.15); outline-offset:-1px; cursor:pointer; background:none; padding:0; flex-shrink:0; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding:0!important; width:100%; height:100%; }
+input[type="color"]::-webkit-color-swatch { border:none!important; border-radius:0; width:100%; height:100%; }
+.sel-stop .hx { flex:1; }
+.sel-stop .ps { width:46px; text-align:center; }
 
-/* === Buttons === */
-.actions { display: flex; gap: 8px; }
-.actions button { flex: 1; padding: 7px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; transition: all 0.15s; }
-.actions button:active { transform: scale(0.96); }
-.btn-add { background: #2a2a2a; color: #FFD700; border: 1px solid #444 !important; }
-.btn-add:hover { background: #333; }
+.sel-stop .sl { display:flex; gap:6px; align-items:center; }
+.sel-stop .sl label { font-size:11px; color:rgba(255,255,255,0.5); min-width:50px; text-transform:uppercase; flex-shrink:0; letter-spacing:1px; }
+.sel-stop .sl input[type="range"] { flex:1; }
+.sel-stop .sl .sv { font-size:13px; color:#FFD700; width:44px; text-align:center; font-variant-numeric:tabular-nums; background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.12); border-radius:4px; padding:0 4px; height:22px; box-sizing:border-box; -moz-appearance:textfield; flex-shrink:0; }
+.sel-stop .sl .sv::-webkit-outer-spin-button,.sel-stop .sl .sv::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
-/* === Saved gradients === */
-.saved-list { display: flex; flex-direction: column; gap: 3px; max-height: 130px; overflow-y: auto; }
-.saved-item {
-  display: flex; align-items: center; gap: 8px; padding: 5px 8px;
-  background: #1a1a1a; border-radius: 6px; border: 1px solid #222; cursor: pointer; transition: all 0.15s;
-}
-.saved-item:hover { border-color: #444; background: #222; }
-.saved-item .swatch { width: 28px; height: 22px; border-radius: 4px; border: 1px solid #333; flex-shrink: 0; }
-.saved-item .name { flex: 1; font-size: 12px; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.saved-item .del-saved { cursor: pointer; color: #666; font-size: 14px; width: 18px; text-align: center; }
-.saved-item .del-saved:hover { color: #ff4444; }
-.save-btn { background: #2a2a2a; color: #FFD700; border: 1px solid #444 !important; }
-.save-btn:hover { background: #333; }
+/* Slider rows inside fx groups */
+.sh-grp { display:flex; flex-direction:column; gap:5px; }
+.sh-row { display:flex; gap:4px; align-items:center; }
+.sh-row label { font-size:11px; color:rgba(255,255,255,0.5); min-width:50px; text-transform:uppercase; flex-shrink:0; letter-spacing:1px; }
+.sh-row input[type="range"] { flex:1; }
+.sh-row .sv { font-size:13px; color:#FFD700; width:42px; text-align:center; font-variant-numeric:tabular-nums; background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.12); border-radius:4px; padding:0 4px; height:22px; box-sizing:border-box; -moz-appearance:textfield; flex-shrink:0; }
+.sh-row .sv::-webkit-outer-spin-button,.sh-row .sv::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
-/* === Output === */
-.output-box { background: #0d0d0d; border-radius: 8px; padding: 12px; border: 1px solid #222; margin-top: 2px; }
-.output-box pre { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11.5px; color: #FFD700; white-space: pre-wrap; word-break: break-all; line-height: 1.5; }
-.copy-btn { background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; font-weight: 800; }
-.copy-btn:hover { opacity: 0.9; }
-.tip { font-size: 11px; color: #555; }
+button { padding:5px 12px; border:none; border-radius:5px; cursor:pointer; font-size:12px; font-weight:700; letter-spacing:0.5px; transition:all 0.15s; }
+button:active { transform:scale(0.96); }
+.btn-gold { background:rgba(255,215,0,0.08); color:#FFD700; border:1px solid rgba(255,215,0,0.1)!important; font-size:12px; font-weight:700; }
+.btn-gold:hover { background:rgba(255,215,0,0.14); }
+/* saved-toggle matches btn-gold exactly */
+.saved-toggle { cursor:pointer; background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.1); border-radius:5px; padding:5px 12px; text-align:center; color:#FFD700; font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; transition:all 0.15s; width:100%; display:block; }
+.saved-toggle:hover { background:rgba(255,215,0,0.14); }
+
+/* Preview */
+.pbox-wrap { position:relative; width:100%; max-width:640px; padding-top:24px; }
+.pbox-wrap .plbl { position:absolute; top:6px; left:10px; font-size:15px; font-weight:800; color:rgba(255,215,0,0.22); letter-spacing:2px; text-transform:uppercase; z-index:3; pointer-events:none; }
+.pbox { width:100%; border-radius:8px; border:1px solid rgba(255,215,0,0.06); background:rgba(255,255,255,0.07); position:relative; overflow:visible; display:flex; align-items:center; justify-content:center; }
+.pbox-card { height:100px; }
+.pbox-text { height:110px; }
+.pbox-icon { height:110px; display:flex; align-items:center; justify-content:center; }
+/* text preview wrapper for drop-shadow */
+.ptext-wrap { position:relative; z-index:2; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+.ptext { font-weight:700; text-align:center; line-height:1; display:inline-block; }
+.picon { display:flex; align-items:center; justify-content:center; }
+
+/* Output */
+.output-wrap { position:relative; }
+.output-box { background:rgba(255,255,255,0.07); border-radius:5px; padding:10px; border:1px solid rgba(255,215,0,0.12); min-height:240px; }
+.output-box pre { font-family:'JetBrains Mono',monospace; font-size:12px; color:#f0f0f0; white-space:pre-wrap; word-break:break-all; line-height:1.4; }
+.copy-icon-btn { position:absolute; top:4px; right:4px; background:rgba(255,215,0,0.1); border:1px solid rgba(255,215,0,0.12); border-radius:4px; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+.copy-icon-btn svg { width:14px; height:14px; display:block; }
+.copy-icon-btn:hover { background:rgba(255,215,0,0.2); }
+
+textarea { background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.12); border-radius:5px; padding:8px; color:#f0f0f0; font-family:'JetBrains Mono',monospace; font-size:12px; resize:vertical; outline:none; line-height:1.4; width:100%; }
+textarea:focus { border-color:rgba(255,215,0,0.15); }
+
+.saved-lbl { font-size:11px; color:rgba(255,215,0,0.6); letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:4px; }
+.saved-list { display:grid; grid-template-columns:repeat(auto-fill,30px); gap:4px; max-height:130px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(255,215,0,0.2) rgba(255,255,255,0.03); background:rgba(255,255,255,0.07); border-radius:4px; padding:8px; }
+.saved-list::-webkit-scrollbar { width:4px; }
+.saved-list::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); border-radius:2px; }
+.saved-list::-webkit-scrollbar-thumb { background:rgba(255,215,0,0.2); border-radius:2px; }
+.saved-item { width:30px; height:30px; border-radius:3px; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; }
+.saved-item-fx { display:flex; align-items:center; gap:6px; padding:3px 6px; background:rgba(255,215,0,0.015); border-radius:4px; border:1px solid rgba(255,215,0,0.03); cursor:pointer; }
+.saved-item-fx:hover { border-color:rgba(255,215,0,0.1); }
+.saved-item-fx .nm { flex:1; font-size:12px; color:rgba(255,255,255,0.35); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.saved-item-fx .dx { cursor:pointer; color:rgba(255,255,255,0.1); font-size:13px; }
+.saved-item-fx .dx:hover { color:#ff4444; }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.modal-box { background:#0D0D0D; border:1px solid rgba(255,215,0,0.12); border-radius:12px; padding:22px; display:flex; flex-direction:column; gap:14px; min-width:300px; }
+.modal-swatch { width:100%; height:36px; border-radius:6px; border:1px solid rgba(255,215,0,0.06); }
+.modal-form { display:flex; flex-direction:column; gap:5px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; }
+.modal-title { text-align:center; color:#FFD700; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+
+/* Color picker */
+.cp-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; z-index:2000; }
+.cp-box { background:#0D0D0D; border:1px solid rgba(255,215,0,0.12); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:14px; min-width:380px; }
+.cp-body { display:flex; gap:16px; align-items:flex-start; }
+.cp-map-wrap { position:relative; width:200px; height:200px; border-radius:4px; overflow:hidden; cursor:crosshair; border:1px solid rgba(255,215,0,0.08); flex-shrink:0; }
+.cp-map-wrap canvas { display:block; width:100%; height:100%; }
+.cp-crosshair { position:absolute; width:10px; height:10px; border:2px solid #fff; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 3px rgba(0,0,0,0.5); }
+.cp-bar-wrap { position:relative; width:18px; height:200px; border-radius:4px; overflow:hidden; cursor:pointer; flex-shrink:0; border:1px solid rgba(255,215,0,0.08); }
+.cp-bar-wrap canvas { display:block; width:100%; height:100%; }
+.cp-bar-indicator { position:absolute; left:-2px; right:-2px; height:4px; border:2px solid #fff; border-radius:2px; pointer-events:none; box-shadow:0 0 3px rgba(0,0,0,0.5); }
+.cp-preview { width:52px; height:52px; border-radius:6px; border:1px solid rgba(255,215,0,0.1); flex-shrink:0; background:#000; }
+.cp-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+.cp-inputs .cpi { display:flex; flex-direction:column; gap:2px; }
+.cp-inputs .cpi label { font-size:10px; color:rgba(255,215,0,0.5); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
+.cp-inputs .cpi input { background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.1); border-radius:4px; padding:3px 6px; color:#f0f0f0; font-size:12px; outline:none; width:100%; font-family:'JetBrains Mono',monospace; }
+.cp-inputs .cpi input:focus { border-color:rgba(255,215,0,0.3); }
+.cp-hex { grid-column:1/-1; }
+.cp-hex input { width:100%; }
+.cp-actions { display:flex; gap:8px; justify-content:flex-end; }
+.cp-mode { display:flex; gap:6px; margin-bottom:4px; }
+.cp-mode label { font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; text-transform:uppercase; font-weight:700; cursor:pointer; }
+.cp-mode label.active { color:#FFD700; }
+.color-swatch { width:26px; height:26px; min-width:26px; border-radius:4px; border:1px solid rgba(255,215,0,0.15); cursor:pointer; flex-shrink:0; transition:border-color 0.15s; }
+.color-swatch:hover { border-color:rgba(255,215,0,0.35); }
+
+/* SVG filter for inner shadow 1 */
+#svgFilters { position:absolute; width:0; height:0; overflow:hidden; }
 </style>
 </head>
 <body>
+
+<svg id="svgFilters" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="innerShadow1Filter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feFlood id="isFlood" flood-color="rgba(0,0,0,0.6)" result="flood"/>
+      <feComposite in="flood" in2="SourceGraphic" operator="in" result="shadow"/>
+      <feOffset id="isOffset" dx="2" dy="2" result="offsetShadow"/>
+      <feGaussianBlur id="isBlur" stdDeviation="3" result="blurShadow"/>
+      <feComposite in="blurShadow" in2="SourceGraphic" operator="in" result="maskedShadow"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="maskedShadow"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ===== LEFT: CONTROLS ===== -->
 <div class="left">
-  <h2>漸層渲染器</h2>
-  <div class="group">
-    <label>名稱</label>
-    <input type="text" id="gradName" placeholder="my-gradient" value="my-gradient">
+  <h2 data-lang="title">漸層渲染器</h2>
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" data-tab="card">CARD</div>
+    <div class="tab" data-tab="text">TEXT</div>
+    <div class="tab" data-tab="icon">ICON</div>
   </div>
 
-  <div class="row">
-    <div style="flex:1;display:flex;flex-direction:column;gap:5px">
-      <label>類型</label>
-      <select id="gradType">
-        <option value="linear">linear-gradient</option>
-        <option value="radial">radial-gradient</option>
-      </select>
-    </div>
-    <div id="angleGroup" style="flex:2;display:flex;flex-direction:column;gap:5px">
-      <label>角度 <span class="angle-display" id="angleDisplay">135deg</span></label>
-      <input type="range" id="gradAngle" min="0" max="360" value="135">
-    </div>
-  </div>
-
-  <div class="group">
-    <label>色標 — 按漸層條新增，拖曳三角形移動，▲/▼調整透明度</label>
-    <div class="gradient-bar" id="gradientBar">
-      <div class="gradient-bar-fill" id="gradientBarFill"></div>
-    </div>
-    <div class="stop-markers" id="stopMarkers"></div>
-    <div class="selected-stop" id="selectedStopPanel">
-      <div class="top-row">
-        <input type="color" id="selColor">
-        <input type="text" class="hex-input" id="selHex" placeholder="#HEX">
-        <input type="number" class="pos-input" id="selPos" min="0" max="100" step="1">
-        <span class="del-sel" id="delSelStop">×</span>
+  <!-- ===== CARD TAB ===== -->
+  <div class="tab-page" id="page-card">
+    <div class="group group-dark">
+      <div class="sec">
+        <span class="lbl" data-lang="type">類型</span>
+        <select id="cardType"><option value="linear">linear</option><option value="radial">radial</option></select>
       </div>
-      <div class="alpha-row">
-        <label>透明度</label>
-        <input type="range" id="selAlpha" min="0" max="100" value="100">
-        <span class="alpha-val" id="selAlphaVal">100%</span>
+      <div class="sec">
+        <span class="lbl" data-lang="applyGrad">套用漸層</span>
+        <select id="cardGradRef"></select>
+      </div>
+      <div class="saved-lbl" data-lang="savedToggle">Saved Styles</div>
+      <div class="saved-list" id="cardSavedList"></div>
+      <div class="sec">
+        <span class="lbl" data-lang="stops">色標</span>
+        <div class="gbar-wrap">
+          <div class="gbar" id="cardBar"><div class="gbar-fill" id="cardBarFill"></div></div>
+          <div class="smarks" id="cardSmarks"></div>
+        </div>
+      </div>
+      <div class="sel-stop">
+        <div class="sr">
+          <input type="color" id="cardSelCol"><input type="text" class="hx" id="cardSelHex"><input type="number" class="ps" id="cardSelPos" min="0" max="100" step="1">
+        </div>
+        <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="cardSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="cardSelAlpV" min="0" max="100" step="1" value="100"></div>
+        <div class="sl"><label data-lang="angle">角度</label><input type="range" id="cardAngle" min="0" max="360" value="135"><input type="number" class="sv" id="cardAngleV" min="0" max="360" step="1" value="135"></div>
+      </div>
+      <button class="btn-gold" id="saveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+    </div>
+  </div>
+
+  <!-- ===== TEXT TAB ===== -->
+  <div class="tab-page" id="page-text" style="display:none">
+    <div class="group">
+      <div class="sec">
+        <span class="lbl" data-lang="textContent">文字內容</span>
+        <textarea id="txtContent" rows="3" style="font-weight:700;font-size:16px;height:78px;resize:none">GRADIENT</textarea>
+      </div>
+      <div class="row" style="gap:8px;align-items:flex-end">
+        <div class="sec" style="flex:1">
+          <span class="lbl" data-lang="fontSize">Size</span>
+          <input type="number" id="txtSize" value="48" min="8" max="200">
+        </div>
+        <div class="sec" style="flex:1.4">
+          <span class="lbl" data-lang="color">顏色</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="color" id="txtColor" value="#ffffff" style="width:26px;height:31px;flex-shrink:0">
+            <input type="text" id="txtColorHex" value="#ffffff" style="flex:1">
+          </div>
+        </div>
+        <div class="sec" style="flex:1.4">
+          <span class="lbl" data-lang="font">字體</span>
+          <select id="txtFont">
+            <option value="Inter">Inter</option><option value="'Rajdhani'" selected>Rajdhani</option>
+            <option value="Arial">Arial</option><option value="Georgia">Georgia</option>
+            <option value="'Times New Roman'">Times NR</option>
+            <option value="'Courier New'">Courier</option><option value="Impact">Impact</option>
+          </select>
+        </div>
       </div>
     </div>
-    <div class="actions">
-      <button class="btn-add" id="addStopBtn">+ 新增色標</button>
+
+    <!-- 文字漸層 -->
+    <div class="group group-dark">
+      <div class="row" style="gap:6px">
+        <input type="checkbox" id="txtGradEnabled" checked>
+        <span class="lbl" data-lang="textGrad">文字漸層</span>
+      </div>
+      <div id="txtGradControls" style="display:flex;flex-direction:column;gap:8px">
+        <div class="sec">
+          <span class="lbl" data-lang="type">類型</span>
+          <select id="txtGradType"><option value="linear">linear</option><option value="radial">radial</option></select>
+        </div>
+        <div class="sec">
+          <span class="lbl" data-lang="applyGrad">套用漸層</span>
+          <select id="txtGradRef"></select>
+        </div>
+        <div class="saved-lbl" data-lang="savedToggle">Saved Styles</div>
+        <div class="saved-list" id="txtSavedList"></div>
+        <div class="sec">
+          <span class="lbl" data-lang="stops">色標</span>
+          <div class="gbar-wrap">
+            <div class="gbar" id="txtBar"><div class="gbar-fill" id="txtBarFill"></div></div>
+            <div class="smarks" id="txtSmarks"></div>
+          </div>
+        </div>
+        <div class="sel-stop">
+          <div class="sr">
+            <input type="color" id="txtSelCol"><input type="text" class="hx" id="txtSelHex"><input type="number" class="ps" id="txtSelPos" min="0" max="100" step="1">
+          </div>
+          <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="txtSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="txtSelAlpV" min="0" max="100" step="1" value="100"></div>
+          <div class="sl"><label data-lang="angle">角度</label><input type="range" id="txtGradAngle" min="0" max="360" value="90"><input type="number" class="sv" id="txtAngleV" min="0" max="360" step="1" value="90"></div>
+        </div>
+        <button class="btn-gold" id="txtSaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+      </div>
+    </div>
+
+    <!-- 內陰影1 (SVG filter) -->
+    <div class="group group-dark">
+      <div class="row" style="gap:6px">
+        <input type="checkbox" id="txtShadowEnabled">
+        <span class="lbl" data-lang="innerShadow1">內陰影1</span>
+      </div>
+      <div class="sh-grp" id="txtShadowControls">
+        <div class="sh-row">
+          <label data-lang="color">顏色</label>
+          <input type="color" id="shColor" value="#000000" style="width:26px;height:22px;margin-right:4px;flex-shrink:0">
+          <input type="text" id="shColorHex" value="#000000" style="flex:1;font-size:13px">
+        </div>
+        <div class="sh-row"><label data-lang="shAngle">角度</label><input type="range" id="shAngle" min="0" max="360" value="135"><input type="number" class="sv" id="shAngleV" min="0" max="360" step="1" value="135"></div>
+        <div class="sh-row"><label data-lang="distance">距離</label><input type="range" id="shDist" min="0" max="50" value="3"><input type="number" class="sv" id="shDistV" min="0" max="50" step="1" value="3"></div>
+        <div class="sh-row"><label data-lang="shSize">尺寸</label><input type="range" id="shSize" min="0" max="50" value="5"><input type="number" class="sv" id="shSizeV" min="0" max="50" step="1" value="5"></div>
+        <div class="sh-row"><label data-lang="shOpacity">不透明度</label><input type="range" id="shOpacity" min="0" max="100" value="60"><input type="number" class="sv" id="shOpacityV" min="0" max="100" step="1" value="60"></div>
+        <button class="btn-gold" id="shSaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+        <div class="saved-toggle" id="shSavedToggle" data-lang="savedToggle">保存樣式清單</div>
+        <div class="saved-list" id="shSavedList" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- 內陰影2 (multi text-shadow) -->
+    <div class="group group-dark">
+      <div class="row" style="gap:6px">
+        <input type="checkbox" id="txtInnerShadow2Enabled">
+        <span class="lbl" data-lang="innerShadow2">內陰影2</span>
+      </div>
+      <div class="sh-grp" id="txtInnerShadow2Controls">
+        <div class="sh-row">
+          <label data-lang="color">顏色</label>
+          <input type="color" id="sh2Color" value="#000000" style="width:26px;height:22px;margin-right:4px;flex-shrink:0">
+          <input type="text" id="sh2ColorHex" value="#000000" style="flex:1;font-size:13px">
+        </div>
+        <div class="sh-row"><label data-lang="shAngle">角度</label><input type="range" id="sh2Angle" min="0" max="360" value="135"><input type="number" class="sv" id="sh2AngleV" min="0" max="360" step="1" value="135"></div>
+        <div class="sh-row"><label data-lang="distance">距離</label><input type="range" id="sh2Dist" min="0" max="50" value="3"><input type="number" class="sv" id="sh2DistV" min="0" max="50" step="1" value="3"></div>
+        <div class="sh-row"><label data-lang="shSize">尺寸</label><input type="range" id="sh2Size" min="0" max="50" value="5"><input type="number" class="sv" id="sh2SizeV" min="0" max="50" step="1" value="5"></div>
+        <div class="sh-row"><label data-lang="shSpread">傳播</label><input type="range" id="sh2Spread" min="0" max="100" value="0"><input type="number" class="sv" id="sh2SpreadV" min="0" max="100" step="1" value="0"></div>
+        <div class="sh-row"><label data-lang="shOpacity">不透明度</label><input type="range" id="sh2Opacity" min="0" max="100" value="60"><input type="number" class="sv" id="sh2OpacityV" min="0" max="100" step="1" value="60"></div>
+        <button class="btn-gold" id="sh2SaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+        <div class="saved-toggle" id="sh2SavedToggle" data-lang="savedToggle">保存樣式清單</div>
+        <div class="saved-list" id="sh2SavedList" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- 陰影 (drop-shadow, behind text) -->
+    <div class="group group-dark">
+      <div class="row" style="gap:6px">
+        <input type="checkbox" id="txtDropShadowEnabled">
+        <span class="lbl" data-lang="shadow">陰影</span>
+      </div>
+      <div class="sh-grp" id="txtDropShadowControls">
+        <div class="sh-row">
+          <label data-lang="color">顏色</label>
+          <input type="color" id="dsColor" value="#000000" style="width:26px;height:22px;margin-right:4px;flex-shrink:0">
+          <input type="text" id="dsColorHex" value="#000000" style="flex:1;font-size:13px">
+        </div>
+        <div class="sh-row"><label data-lang="shAngle">角度</label><input type="range" id="dsAngle" min="0" max="360" value="135"><input type="number" class="sv" id="dsAngleV" min="0" max="360" step="1" value="135"></div>
+        <div class="sh-row"><label data-lang="distance">距離</label><input type="range" id="dsDist" min="0" max="50" value="3"><input type="number" class="sv" id="dsDistV" min="0" max="50" step="1" value="3"></div>
+        <div class="sh-row"><label data-lang="shSize">尺寸</label><input type="range" id="dsSize" min="0" max="50" value="5"><input type="number" class="sv" id="dsSizeV" min="0" max="50" step="1" value="5"></div>
+        <div class="sh-row"><label data-lang="shSpread">傳播</label><input type="range" id="dsSpread" min="0" max="100" value="0"><input type="number" class="sv" id="dsSpreadV" min="0" max="100" step="1" value="0"></div>
+        <div class="sh-row"><label data-lang="shOpacity">不透明度</label><input type="range" id="dsOpacity" min="0" max="100" value="60"><input type="number" class="sv" id="dsOpacityV" min="0" max="100" step="1" value="60"></div>
+        <button class="btn-gold" id="dsSaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+        <div class="saved-toggle" id="dsSavedToggle" data-lang="savedToggle">保存樣式清單</div>
+        <div class="saved-list" id="dsSavedList" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Glow -->
+    <div class="group group-dark">
+      <div class="row" style="gap:6px">
+        <input type="checkbox" id="txtGlowEnabled">
+        <span class="lbl" data-lang="glow">Glow</span>
+      </div>
+      <div class="sh-grp" id="txtGlowControls">
+        <div class="sh-row">
+          <label data-lang="color">顏色</label>
+          <input type="color" id="glColor" value="#FFD700" style="width:26px;height:22px;margin-right:4px;flex-shrink:0">
+          <input type="text" id="glColorHex" value="#FFD700" style="flex:1;font-size:13px">
+        </div>
+        <div class="sh-row"><label data-lang="glSize">尺寸</label><input type="range" id="glSize" min="0" max="50" value="8"><input type="number" class="sv" id="glSizeV" min="0" max="50" step="1" value="8"></div>
+        <div class="sh-row"><label data-lang="glSpread">傳播</label><input type="range" id="glSpread" min="0" max="100" value="0"><input type="number" class="sv" id="glSpreadV" min="0" max="100" step="1" value="0"></div>
+        <div class="sh-row"><label data-lang="glOpacity">不透明度</label><input type="range" id="glOpacity" min="0" max="100" value="40"><input type="number" class="sv" id="glOpacityV" min="0" max="100" step="1" value="40"></div>
+        <button class="btn-gold" id="glSaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
+        <div class="saved-toggle" id="glSavedToggle" data-lang="savedToggle">保存樣式清單</div>
+        <div class="saved-list" id="glSavedList" style="display:none"></div>
+      </div>
     </div>
   </div>
 
-  <div class="group">
-    <h3>已儲存</h3>
-    <div class="saved-list" id="savedList"></div>
-    <div class="actions">
-      <button class="save-btn" id="saveBtn">💾 儲存目前漸層</button>
+  <!-- ===== ICON TAB ===== -->
+  <div class="tab-page" id="page-icon" style="display:none">
+    <div class="group">
+      <div class="row" style="gap:8px;align-items:flex-end">
+        <div class="sec" style="flex:1">
+          <span class="lbl" data-lang="builtinIcon">內建圖示</span>
+          <select id="iconSelect">
+            <option value="star">Star</option><option value="diamond">Diamond</option><option value="crown">Crown</option>
+            <option value="fire">Fire</option><option value="lightning">Lightning</option><option value="coin">Coin</option>
+            <option value="heart">Heart</option><option value="target">Target</option><option value="trophy">Trophy</option><option value="rocket">Rocket</option>
+          </select>
+        </div>
+        <div class="sec" style="flex:1">
+          <span class="lbl" data-lang="custom">自訂</span>
+          <button class="btn-gold" id="iconCustomBtn" style="width:100%" data-lang="customPreview">Custom</button>
+        </div>
+      </div>
+      <input type="file" id="iconUpload" accept="image/*" style="display:none">
+      <div class="sec">
+        <span class="lbl" data-lang="size">大小</span>
+        <input type="number" id="iconSize" value="64" min="16" max="300">
+      </div>
+    </div>
+    <div class="group group-dark">
+      <div class="sec">
+        <span class="lbl" data-lang="type">類型</span>
+        <select id="iconGradType"><option value="linear">linear</option><option value="radial">radial</option></select>
+      </div>
+      <div class="sec">
+        <span class="lbl" data-lang="applyGrad">套用漸層</span>
+        <select id="iconGradRef"></select>
+      </div>
+      <div class="saved-lbl" data-lang="savedToggle">Saved Styles</div>
+      <div class="saved-list" id="iconSavedList"></div>
+      <div class="sec">
+        <span class="lbl" data-lang="stops">色標</span>
+        <div class="gbar-wrap">
+          <div class="gbar" id="iconBar"><div class="gbar-fill" id="iconBarFill"></div></div>
+          <div class="smarks" id="iconSmarks"></div>
+        </div>
+      </div>
+      <div class="sel-stop">
+        <div class="sr">
+          <input type="color" id="iconSelCol"><input type="text" class="hx" id="iconSelHex"><input type="number" class="ps" id="iconSelPos" min="0" max="100" step="1">
+        </div>
+        <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="iconSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="iconSelAlpV" min="0" max="100" step="1" value="100"></div>
+        <div class="sl"><label data-lang="angle">角度</label><input type="range" id="iconGradAngle" min="0" max="360" value="45"><input type="number" class="sv" id="iconAngleV" min="0" max="360" step="1" value="45"></div>
+      </div>
+      <button class="btn-gold" id="iconSaveBtn" style="width:100%" data-lang="addStyle">保存樣式</button>
     </div>
   </div>
 
-  <div class="group">
-    <label>輸出 <span class="tip">(複製後貼給我)</span></label>
-    <div class="output-box">
-      <pre id="outputCode">調整漸層後複製這裡</pre>
+</div><!-- end .left -->
+
+<!-- ===== CENTER: PREVIEW ===== -->
+<div class="center">
+  <div style="position:absolute;top:12px;right:12px;z-index:10;display:flex;align-items:center;gap:6px">
+    <span style="font-size:10px;color:rgba(255,215,0,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700" data-lang="langLabel">語言</span>
+    <select class="lang-select" id="langSelect" style="position:static;width:auto;min-width:70px"><option value="en">EN</option><option value="zh">中文</option></select>
+  </div>
+  <div class="pbox-wrap">
+    <span class="plbl">Card</span>
+    <div class="pbox pbox-card" id="previewCard">
+      <div style="width:100%;height:100%;position:absolute;inset:0;border-radius:8px;z-index:1" id="cardBgFill"></div>
     </div>
-    <div class="actions">
-      <button class="copy-btn" id="copyBtn">📋 複製格式</button>
+  </div>
+  <div class="pbox-wrap">
+    <span class="plbl">Text</span>
+    <div class="pbox pbox-text" id="previewText">
+      <div class="ptext-wrap" id="pTextWrap">
+        <div class="ptext" id="pText"></div>
+      </div>
+    </div>
+  </div>
+  <div class="pbox-wrap">
+    <span class="plbl">Icon</span>
+    <div class="pbox pbox-icon" id="previewIcon">
+      <div class="picon" id="pIcon"></div>
     </div>
   </div>
 </div>
 
+<!-- ===== RIGHT ===== -->
 <div class="right">
-  <div class="preview" id="preview"></div>
+  <h2 data-lang="output">輸出</h2>
+  <div class="output-wrap">
+    <div class="output-box"><pre id="outputCode">Copy output here</pre></div>
+    <span class="copy-icon-btn" id="copyBtn" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"><rect x="9" y="2" width="13" height="16" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+  </div>
+  <h2 data-lang="import">載入</h2>
+  <textarea id="importInput" rows="12" placeholder="Paste format and press Import"></textarea>
+  <button class="btn-gold" id="importBtn" data-lang="importBtn">Import</button>
+</div>
+
+<!-- Gradient save modal -->
+<div class="modal-overlay" id="saveModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" data-lang="saveModalTitle">保存樣式</div>
+    <div class="modal-swatch" id="modalSwatch"></div>
+    <div class="modal-form">
+      <span class="lbl" style="color:#FFD700" data-lang="name">名稱</span>
+      <input type="text" id="modalName" value="gradient_001">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-gold" id="modalConfirm" data-lang="confirm">保存</button>
+      <button class="btn-gold" id="modalCancel" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.06)!important" data-lang="cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- FX save modal -->
+<div class="modal-overlay" id="fxSaveModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" data-lang="saveModalTitle">保存樣式</div>
+    <div class="modal-form">
+      <span class="lbl" style="color:#FFD700" data-lang="name">名稱</span>
+      <input type="text" id="fxModalName" value="style_001">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-gold" id="fxModalConfirm" data-lang="confirm">保存</button>
+      <button class="btn-gold" id="fxModalCancel" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.06)!important" data-lang="cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Color picker modal -->
+<div class="cp-overlay" id="cpOverlay" style="display:none">
+  <div class="cp-box">
+    <div class="cp-body">
+      <div class="cp-map-wrap" id="cpMapWrap">
+        <canvas id="cpMapCanvas" width="200" height="200"></canvas>
+        <div class="cp-crosshair" id="cpCrosshair"></div>
+      </div>
+      <div class="cp-bar-wrap" id="cpBarWrap">
+        <canvas id="cpBarCanvas" width="18" height="200"></canvas>
+        <div class="cp-bar-indicator" id="cpBarIndicator"></div>
+      </div>
+      <div class="cp-preview" id="cpPreview"></div>
+    </div>
+    <div class="cp-mode" id="cpMode">
+      <label data-mode="h">H</label>
+      <label data-mode="s">S</label>
+      <label data-mode="b">B</label>
+    </div>
+    <div class="cp-inputs">
+      <div class="cpi"><label>H</label><input type="number" id="cpH" min="0" max="360" step="1"></div>
+      <div class="cpi"><label>S</label><input type="number" id="cpS" min="0" max="100" step="1"></div>
+      <div class="cpi"><label>B</label><input type="number" id="cpB" min="0" max="100" step="1"></div>
+      <div class="cpi"><label>R</label><input type="number" id="cpR" min="0" max="255" step="1"></div>
+      <div class="cpi"><label>G</label><input type="number" id="cpG" min="0" max="255" step="1"></div>
+      <div class="cpi"><label>B</label><input type="number" id="cpBB" min="0" max="255" step="1"></div>
+      <div class="cpi cp-hex"><label>#</label><input type="text" id="cpHex" maxlength="7"></div>
+    </div>
+    <div class="cp-actions">
+      <button class="btn-gold" id="cpOk">OK</button>
+      <button class="btn-gold" id="cpCancel" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.06)!important">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script>
-let stops = [
-  { color: '#0A001A', alpha: 1, pos: 0 },
-  { color: '#2D0040', alpha: 1, pos: 100 },
-];
-let selectedIdx = 0;
-let dragIdx = -1;
-let isDragging = false;
 const LS_KEY = 'gradient_tool_saves';
+const LS_SH_KEY  = 'gt_shadow1';
+const LS_SH2_KEY = 'gt_shadow2';
+const LS_DS_KEY  = 'gt_dropshadow';
+const LS_GL_KEY  = 'gt_glow';
 
-/* ====== Color utils ====== */
-function hexToRgb(hex) {
-  const h = hex.replace('#', '');
-  return { r: parseInt(h.substr(0,2),16), g: parseInt(h.substr(2,2),16), b: parseInt(h.substr(4,2),16) };
+const gradients = {
+  card: { name:'Card BG', type:'linear', angle:135, stops:[{color:'#0A001A',alpha:1,pos:0},{color:'#FFD700',alpha:1,pos:100}] },
+  text: { name:'Text Fill', type:'linear', angle:90, stops:[{color:'#FFD700',alpha:1,pos:0},{color:'#FF8C00',alpha:1,pos:100}] },
+  icon: { name:'Icon Fill', type:'linear', angle:45, stops:[{color:'#FF4500',alpha:1,pos:0},{color:'#FFD700',alpha:1,pos:100}] },
+};
+
+const txtState = {
+  content:'GRADIENT', size:48, font:"'Rajdhani'", color:'#ffffff',
+  gradientEnabled:true, gradRef:'',
+  shadowEnabled:false,      shadow:      {color:'#000000',angle:135,dist:3,size:5,opacity:60},
+  innerShadow2Enabled:false, innerShadow2:{color:'#000000',angle:135,dist:3,size:5,spread:0,opacity:60},
+  dropShadowEnabled:false,  dropShadow:  {color:'#000000',angle:135,dist:3,size:5,spread:0,opacity:60},
+  glowEnabled:false,        glow:        {color:'#FFD700',size:8,spread:0,opacity:40},
+};
+const cardState = {gradRef:''};
+const iconState = {type:'builtin',value:'star',size:64,gradRef:'',customUrl:null};
+let activeGrad='card', selIdx=0, dragIdx=-1, isDrag=false;
+let fxModalTarget=null;
+
+function hex2rgb(h){const c=h.replace('#','');return{r:parseInt(c.substr(0,2),16),g:parseInt(c.substr(2,2),16),b:parseInt(c.substr(4,2),16)};}
+function toCss(c,a){if(a>=0.999)return c;const {r,g,b}=hex2rgb(c);return `rgba(${r},${g},${b},${a})`;}
+function gradCss(g){if(!g)return 'none';const p=g.stops.map(s=>`${toCss(s.color,s.alpha)} ${s.pos}%`);return g.type==='linear'?`linear-gradient(${g.angle}deg,${p.join(',')})`:`radial-gradient(circle,${p.join(',')})`;}
+function neighborColor(stops,pct){if(!stops||!stops.length)return '#888888';let l=null,r=null;for(const s of stops){if(s.pos<=pct&&(!l||s.pos>l.pos))l=s;if(s.pos>=pct&&(!r||s.pos<r.pos))r=s;}return l?l.color:(r?r.color:'#888888');}
+function getGrad(which){if(which==='card'||which==='text'||which==='icon')return gradients[which];const s=loadSaved().find(x=>x.name===which);return s||null;}
+
+// ---- FX storage ----
+function fxLoad(key){try{return JSON.parse(localStorage.getItem(key))||[];}catch{return [];}}
+function fxSave(key,list){localStorage.setItem(key,JSON.stringify(list));}
+function fxKeyFor(t){if(t==='shadow')return LS_SH_KEY;if(t==='innerShadow2')return LS_SH2_KEY;if(t==='dropShadow')return LS_DS_KEY;return LS_GL_KEY;}
+function fxListIdFor(t){if(t==='shadow')return 'shSavedList';if(t==='innerShadow2')return 'sh2SavedList';if(t==='dropShadow')return 'dsSavedList';return 'glSavedList';}
+function fxToggleIdFor(t){if(t==='shadow')return 'shSavedToggle';if(t==='innerShadow2')return 'sh2SavedToggle';if(t==='dropShadow')return 'dsSavedToggle';return 'glSavedToggle';}
+
+function fxStateToObj(t){
+  if(t==='shadow'){const s=txtState.shadow;return{type:t,color:s.color,angle:s.angle,dist:s.dist,size:s.size,opacity:s.opacity};}
+  if(t==='innerShadow2'){const s=txtState.innerShadow2;return{type:t,color:s.color,angle:s.angle,dist:s.dist,size:s.size,spread:s.spread,opacity:s.opacity};}
+  if(t==='dropShadow'){const s=txtState.dropShadow;return{type:t,color:s.color,angle:s.angle,dist:s.dist,size:s.size,spread:s.spread,opacity:s.opacity};}
+  const g=txtState.glow;return{type:t,color:g.color,size:g.size,spread:g.spread,opacity:g.opacity};
 }
-function rgbToHex(r, g, b) {
-  return '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
-}
-function toCSSColor(c, a) {
-  if (a >= 0.999) return c;
-  const rgb = hexToRgb(c);
-  return `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
+function fxObjToState(obj){
+  if(obj.type==='shadow')Object.assign(txtState.shadow,{color:obj.color,angle:obj.angle,dist:obj.dist,size:obj.size,opacity:obj.opacity});
+  else if(obj.type==='innerShadow2')Object.assign(txtState.innerShadow2,{color:obj.color,angle:obj.angle,dist:obj.dist,size:obj.size,spread:obj.spread,opacity:obj.opacity});
+  else if(obj.type==='dropShadow')Object.assign(txtState.dropShadow,{color:obj.color,angle:obj.angle,dist:obj.dist,size:obj.size,spread:obj.spread,opacity:obj.opacity});
+  else Object.assign(txtState.glow,{color:obj.color,size:obj.size,spread:obj.spread,opacity:obj.opacity});
 }
 
-/* ====== Save/Load ====== */
-function loadSaved() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } }
-function saveSaved(list) { localStorage.setItem(LS_KEY, JSON.stringify(list)); }
-
-function renderSavedList() {
-  const list = loadSaved();
-  const c = document.getElementById('savedList');
-  c.innerHTML = '';
-  if (list.length === 0) { c.innerHTML = '<div style="font-size:11px;color:#555;padding:4px 0">尚無儲存</div>'; return; }
-  list.forEach((item, i) => {
-    const d = document.createElement('div'); d.className = 'saved-item';
-    const parts = item.stops.map(s => `${toCSSColor(s.color, s.alpha)} ${s.pos}%`).join(', ');
-    const css = item.type === 'linear' ? `linear-gradient(${item.angle}deg, ${parts})` : `radial-gradient(circle, ${parts})`;
-    d.innerHTML = `<div class="swatch" style="background:${css}"></div><span class="name">${item.name}</span><span class="del-saved" data-idx="${i}">×</span>`;
-    d.addEventListener('click', (e) => { if (!e.target.classList.contains('del-saved')) loadGradient(item); });
-    d.querySelector('.del-saved').addEventListener('click', (e) => {
-      e.stopPropagation(); const list2 = loadSaved(); list2.splice(+e.target.dataset.idx, 1); saveSaved(list2); renderSavedList();
+function renderFxSaved(t){
+  const c=document.getElementById(fxListIdFor(t));if(!c)return;
+  const list=fxLoad(fxKeyFor(t));c.innerHTML='';
+  if(!list.length){c.innerHTML=`<div style="font-size:11px;color:rgba(255,255,255,0.1);padding:2px 4px">${LANG_DATA[currentLang].emptySaved}</div>`;return;}
+  list.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='saved-item-fx';
+    d.innerHTML=`<span class="nm">${item.name}</span><span class="dx" data-idx="${i}">×</span>`;
+    d.addEventListener('click',(e)=>{
+      if(e.target.classList.contains('dx'))return;
+      const items=fxLoad(fxKeyFor(t));if(!items[i])return;
+      fxObjToState(items[i]);loadFxToUI(t);updatePreviews();updateOutput();
+    });
+    d.querySelector('.dx').addEventListener('click',(e)=>{
+      e.stopPropagation();const items=fxLoad(fxKeyFor(t));items.splice(+e.target.dataset.idx,1);fxSave(fxKeyFor(t),items);renderFxSaved(t);
     });
     c.appendChild(d);
   });
 }
 
-function loadGradient(item) {
-  document.getElementById('gradName').value = item.name;
-  document.getElementById('gradType').value = item.type;
-  if (item.angle != null) { document.getElementById('gradAngle').value = item.angle; document.getElementById('angleDisplay').textContent = item.angle + 'deg'; }
-  document.getElementById('angleGroup').style.display = item.type === 'linear' ? 'flex' : 'none';
-  stops = item.stops.map(s => ({ ...s }));
-  selectedIdx = 0;
-  renderAll();
+function loadFxToUI(t){
+  if(t==='shadow'){
+    const s=txtState.shadow;
+    sv('shColor',s.color);sv('shColorHex',s.color);sv('shAngle',s.angle);sv('shAngleV',s.angle);
+    sv('shDist',s.dist);sv('shDistV',s.dist);sv('shSize',s.size);sv('shSizeV',s.size);sv('shOpacity',s.opacity);sv('shOpacityV',s.opacity);
+  } else if(t==='innerShadow2'){
+    const s=txtState.innerShadow2;
+    sv('sh2Color',s.color);sv('sh2ColorHex',s.color);sv('sh2Angle',s.angle);sv('sh2AngleV',s.angle);
+    sv('sh2Dist',s.dist);sv('sh2DistV',s.dist);sv('sh2Size',s.size);sv('sh2SizeV',s.size);
+    sv('sh2Spread',s.spread);sv('sh2SpreadV',s.spread);sv('sh2Opacity',s.opacity);sv('sh2OpacityV',s.opacity);
+  } else if(t==='dropShadow'){
+    const s=txtState.dropShadow;
+    sv('dsColor',s.color);sv('dsColorHex',s.color);sv('dsAngle',s.angle);sv('dsAngleV',s.angle);
+    sv('dsDist',s.dist);sv('dsDistV',s.dist);sv('dsSize',s.size);sv('dsSizeV',s.size);
+    sv('dsSpread',s.spread);sv('dsSpreadV',s.spread);sv('dsOpacity',s.opacity);sv('dsOpacityV',s.opacity);
+  } else {
+    const g=txtState.glow;
+    sv('glColor',g.color);sv('glColorHex',g.color);sv('glSize',g.size);sv('glSizeV',g.size);
+    sv('glSpread',g.spread);sv('glSpreadV',g.spread);sv('glOpacity',g.opacity);sv('glOpacityV',g.opacity);
+  }
+}
+function sv(id,val){const el=document.getElementById(id);if(!el)return;el.value=val;if(el.type==='color'){const sw=el.nextElementSibling;if(sw&&sw.classList.contains('color-swatch'))sw.style.background=val;}}
+
+const fxExpandState={shadow:false,innerShadow2:false,dropShadow:false,glow:false};
+function toggleFxSaved(t){
+  fxExpandState[t]=!fxExpandState[t];
+  const el=document.getElementById(fxToggleIdFor(t));
+  if(el)el.textContent=LANG_DATA[currentLang].savedToggle;
+  const listEl=document.getElementById(fxListIdFor(t));
+  if(listEl)listEl.style.display=fxExpandState[t]?'':'none';
+  renderFxSaved(t);
 }
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const name = document.getElementById('gradName').value.trim() || 'unnamed';
-  const type = document.getElementById('gradType').value;
-  const angle = +document.getElementById('gradAngle').value;
-  const list = loadSaved();
-  const existing = list.findIndex(g => g.name === name);
-  const entry = { name, type, angle, stops: JSON.parse(JSON.stringify(stops)) };
-  existing >= 0 ? list[existing] = entry : list.push(entry);
-  saveSaved(list); renderSavedList();
-  const btn = document.getElementById('saveBtn'); btn.textContent = '✅ 已儲存'; setTimeout(() => btn.textContent = '💾 儲存目前漸層', 1200);
+document.getElementById('shSavedToggle').onclick=()=>toggleFxSaved('shadow');
+document.getElementById('sh2SavedToggle').onclick=()=>toggleFxSaved('innerShadow2');
+document.getElementById('dsSavedToggle').onclick=()=>toggleFxSaved('dropShadow');
+document.getElementById('glSavedToggle').onclick=()=>toggleFxSaved('glow');
+
+function openFxModal(t){
+  fxModalTarget=t;const key=fxKeyFor(t);const list=fxLoad(key);
+  let num=1;while(list.some(x=>x.name==='style_'+String(num).padStart(3,'0')))num++;
+  sv('fxModalName','style_'+String(num).padStart(3,'0'));
+  document.getElementById('fxSaveModal').style.display='flex';
+}
+['shSaveBtn','sh2SaveBtn','dsSaveBtn','glSaveBtn'].forEach((id,i)=>{
+  const types=['shadow','innerShadow2','dropShadow','glow'];
+  document.getElementById(id).addEventListener('click',()=>openFxModal(types[i]));
+});
+document.getElementById('fxModalConfirm').addEventListener('click',()=>{
+  const name=document.getElementById('fxModalName').value.trim();if(!name||!fxModalTarget)return;
+  const key=fxKeyFor(fxModalTarget);const list=fxLoad(key);
+  const entry=fxStateToObj(fxModalTarget);entry.name=name;
+  list.push(entry);fxSave(key,list);renderFxSaved(fxModalTarget);
+  document.getElementById('fxSaveModal').style.display='none';
+});
+document.getElementById('fxModalCancel').addEventListener('click',()=>{document.getElementById('fxSaveModal').style.display='none';});
+
+// ---- Gradient saved ----
+function loadSaved(){try{return JSON.parse(localStorage.getItem(LS_KEY))||[];}catch{return [];}}
+function saveSaved(l){localStorage.setItem(LS_KEY,JSON.stringify(l));}
+
+function renderRefSelects(){
+  const saved=loadSaved();const L=LANG_DATA[currentLang];
+  ['cardGradRef','txtGradRef','iconGradRef'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const self=id==='cardGradRef'?'card':id==='txtGradRef'?'text':'icon';
+    let html=`<option value="">${currentLang==='en'?'Custom':'自定義'}</option>`;
+    if(self!=='card')html+=`<option value="card">${L.cardGrad||'Card'}</option>`;
+    if(self!=='text')html+=`<option value="text">${L.textGrad||'Text'}</option>`;
+    if(self!=='icon')html+=`<option value="icon">${L.iconGrad||'Icon'}</option>`;
+    if(saved.length){html+=`<option disabled>${currentLang==='en'?'── Saved ──':'── 已儲存 ──'}</option>`;saved.forEach(s=>html+=`<option value="saved:${s.name}">${s.name}</option>`);}
+    el.innerHTML=html;el.value='';
+  });
+}
+
+function renderSaved(){
+  const list=loadSaved();
+  ['cardSavedList','txtSavedList','iconSavedList'].forEach(tid=>{
+    const c=document.getElementById(tid);if(!c)return;c.innerHTML='';
+    if(!list.length){c.innerHTML='';return;}
+    list.forEach((item,i)=>{
+      const d=document.createElement('div');d.className='saved-item';
+      const css=item.type==='linear'?`linear-gradient(${item.angle}deg,${item.stops.map(s=>`${s.color} ${s.pos}%`).join(',')})`:`radial-gradient(circle,${item.stops.map(s=>`${s.color} ${s.pos}%`).join(',')})`;
+      d.style.background=css;d.title=item.name;
+      d.addEventListener('click',(e)=>{
+        if(e.target.classList.contains('dx'))return;
+        const gr=loadSaved()[i];if(!gr)return;
+        Object.assign(gradients[activeGrad],JSON.parse(JSON.stringify(gr)));
+        loadGradToUI();
+      });
+      const dx=d.querySelector('.dx');
+      c.appendChild(d);
+    });
+  });
+  renderRefSelects();
+}
+
+// Gradient saved lists are always visible
+
+// ---- Gradient save modal ----
+function openGradModal(which){
+  const g=gradients[which];if(!g)return;
+  document.getElementById('modalSwatch').style.background=gradCss(g);
+  const list=loadSaved();let num=1;
+  while(list.some(x=>x.name==='gradient_'+String(num).padStart(3,'0')))num++;
+  sv('modalName','gradient_'+String(num).padStart(3,'0'));
+  document.getElementById('saveModal')._targetGrad=which;
+  document.getElementById('saveModal').style.display='flex';
+}
+document.getElementById('saveBtn').addEventListener('click',()=>openGradModal('card'));
+document.getElementById('txtSaveBtn').addEventListener('click',()=>openGradModal('text'));
+document.getElementById('iconSaveBtn').addEventListener('click',()=>openGradModal('icon'));
+document.getElementById('modalConfirm').addEventListener('click',()=>{
+  const name=document.getElementById('modalName').value.trim();if(!name)return;
+  const which=document.getElementById('saveModal')._targetGrad||activeGrad;
+  const g=gradients[which];if(!g)return;
+  const entry=JSON.parse(JSON.stringify(g));entry.name=name;
+  const list=loadSaved();list.push(entry);saveSaved(list);renderSaved();
+  document.getElementById('saveModal').style.display='none';
+  const btnMap={card:'saveBtn',text:'txtSaveBtn',icon:'iconSaveBtn'};
+  const btn=document.getElementById(btnMap[which]);
+  if(btn){btn.textContent='✓';setTimeout(()=>btn.textContent=LANG_DATA[currentLang].addStyle,1200);}
+});
+document.getElementById('modalCancel').addEventListener('click',()=>document.getElementById('saveModal').style.display='none');
+
+// ---- Tab switching ----
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.tab-page').forEach(p=>p.style.display='none');
+    document.getElementById('page-'+this.dataset.tab).style.display='block';
+    activeGrad=this.dataset.tab;
+    loadGradToUI();updateOutput();
+  });
 });
 
-/* ====== Renderers ====== */
-function renderGradientBar() {
-  const fill = document.getElementById('gradientBarFill');
-  fill.style.background = getGradientCSS();
+// ---- Gradient bar rendering ----
+function renderAll(which){
+  const g=getGrad(which);if(!g)return;
+  const fill=document.getElementById(barPfx(which)+'BarFill');
+  if(fill)fill.style.background=g.type==='linear'?`linear-gradient(90deg,${g.stops.map(s=>`${toCss(s.color,s.alpha)} ${s.pos}%`).join(',')})`:`radial-gradient(circle,${g.stops.map(s=>`${toCss(s.color,s.alpha)} ${s.pos}%`).join(',')})`;
+  renderStops(which);renderSelPanel(which);updatePreviews();updateOutput();
 }
 
-function renderStopMarkers() {
-  const c = document.getElementById('stopMarkers'); c.innerHTML = '';
-  const bar = document.getElementById('gradientBar'); const barW = bar.offsetWidth || 400;
-  stops.forEach((s, i) => {
-    const m = document.createElement('div'); m.className = 'stop-marker' + (i === selectedIdx ? ' active' : '');
-    m.dataset.idx = i; m.style.left = (s.pos / 100 * barW) + 'px';
-    const pct = Math.round(s.alpha * 100);
-    m.innerHTML = `
-      <div class="op-row">
-        <span class="op-btn op-up" data-idx="${i}">▲</span>
-        <span class="op-btn op-dn" data-idx="${i}">▼</span>
-      </div>
-      <div class="arrow-wrap"><div class="arrow"></div></div>
-      <div class="op-val">${pct}</div>
-    `;
-    m.querySelector('.arrow-wrap').addEventListener('mousedown', (e) => {
-      e.preventDefault(); dragIdx = i; selectedIdx = i; isDragging = true; renderAll(); startDrag(e);
-    });
-    m.querySelector('.op-up').addEventListener('click', (e) => { e.stopPropagation(); adjustAlpha(i, 0.05); });
-    m.querySelector('.op-dn').addEventListener('click', (e) => { e.stopPropagation(); adjustAlpha(i, -0.05); });
+function barPfx(which){return which==='text'?'txt':which;}
+function renderStops(which){
+  const g=getGrad(which);if(!g)return;
+  const pfx=barPfx(which);
+  const c=document.getElementById(pfx+'Smarks');if(!c)return;c.innerHTML='';
+  const bar=document.getElementById(pfx+'Bar');if(!bar)return;
+  const bw=Math.max(bar.offsetWidth||300,1);
+  g.stops.forEach((s,i)=>{
+    const m=document.createElement('div');m.className='smark'+(i===selIdx?' active':'');
+    m.dataset.idx=i;m.style.left=Math.round(s.pos/100*bw)+'px';
+    m.innerHTML='<div class="smark-diamond"></div>';
+    m.addEventListener('mousedown',(e)=>{e.preventDefault();dragIdx=i;selIdx=i;isDrag=true;renderAll(which);startDrag(which,e);});
     c.appendChild(m);
   });
 }
-
-function adjustAlpha(idx, delta) {
-  stops[idx].alpha = Math.max(0, Math.min(1, +(stops[idx].alpha + delta).toFixed(2)));
-  selectedIdx = idx; renderAll();
+function selPfx(which){return which==='text'?'txt':which;}
+function renderSelPanel(which){
+  const g=getGrad(which);if(!g)return;
+  const s=g.stops[selIdx]||g.stops[0];if(!s)return;
+  const pfx=selPfx(which);
+  sv(pfx+'SelCol',s.color);sv(pfx+'SelHex',s.color);sv(pfx+'SelPos',s.pos);
+  const a=Math.round(s.alpha*100);sv(pfx+'SelAlp',a);sv(pfx+'SelAlpV',a);
+  const anId=which==='text'?'txtGradAngle':which==='icon'?'iconGradAngle':'cardAngle';
+  const anVId=which==='text'?'txtAngleV':which+'AngleV';
+  sv(anId,g.angle);sv(anVId,g.angle);
 }
-
-function renderSelectedPanel() {
-  const s = stops[selectedIdx] || stops[0]; if (!s) return;
-  document.getElementById('selColor').value = s.color;
-  document.getElementById('selHex').value = s.color;
-  document.getElementById('selPos').value = s.pos;
-  const a = Math.round(s.alpha * 100);
-  document.getElementById('selAlpha').value = a;
-  document.getElementById('selAlphaVal').textContent = a + '%';
-}
-
-function renderAll() { renderGradientBar(); renderStopMarkers(); renderSelectedPanel(); updatePreview(); updateOutput(); }
-
-/* ====== Dragging ====== */
-function startDrag(e) {
-  const bar = document.getElementById('gradientBar'); const rect = bar.getBoundingClientRect();
-  const onMove = (ev) => {
-    const x = ev.clientX - rect.left; const pct = Math.max(0, Math.min(100, Math.round((x / rect.width) * 100)));
-    stops[dragIdx].pos = pct; if (selectedIdx !== dragIdx) { selectedIdx = dragIdx; } renderAll();
+function startDrag(which,e){
+  const pfx=barPfx(which);
+  const bar=document.getElementById(pfx+'Bar');if(!bar)return;
+  const g=getGrad(which);
+  const rect=bar.getBoundingClientRect();
+  const deleteThreshold=rect.bottom+18;
+  const onMove=(ev)=>{
+    if(ev.clientY>=deleteThreshold&&g.stops.length>2&&dragIdx>=0){
+      g.stops.splice(dragIdx,1);selIdx=Math.min(selIdx,g.stops.length-1);
+      isDrag=false;dragIdx=-1;renderAll(which);
+      document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
+      return;
+    }
+    const pct=Math.max(0,Math.min(100,Math.round(((ev.clientX-rect.left)/rect.width)*100)));
+    if(dragIdx>=0&&dragIdx<g.stops.length){
+      const draggedStop=g.stops[dragIdx];
+      draggedStop.pos=pct;
+      g.stops.sort((a,b)=>a.pos-b.pos);
+      dragIdx=g.stops.indexOf(draggedStop);
+      selIdx=dragIdx;
+      renderAll(which);
+    }
   };
-  const onUp = () => { isDragging = false; dragIdx = -1; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
-  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); onMove(e);
+  const onUp=()=>{isDrag=false;dragIdx=-1;renderAll(which);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+  document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);onMove(e);
 }
 
-/* ====== Add / Delete ====== */
-document.getElementById('gradientBar').addEventListener('click', (e) => {
-  if (isDragging) return;
-  const rect = document.getElementById('gradientBar').getBoundingClientRect();
-  const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-  stops.push({ color: '#666666', alpha: 1, pos: pct });
-  stops.sort((a, b) => a.pos - b.pos);
-  selectedIdx = stops.findIndex(s => s.pos === pct && s.color === '#666666');
-  renderAll();
-});
+function bindGradEvents(p){
+  const bpfx=p==='text'?'txt':p;
+  const bar=document.getElementById(bpfx+'Bar');
+  // Bar click: select nearest stop (don't add new stop — use smarks area for that)
+  if(bar){
+    const nb=bar.cloneNode(true);bar.parentNode.replaceChild(nb,bar);
+    nb.addEventListener('click',(e)=>{
+      const g=getGrad(p);if(!g||!g.stops.length)return;
+      const r=nb.getBoundingClientRect();
+      const pct=((e.clientX-r.left)/r.width)*100;
+      let nearest=0,minDist=Infinity;
+      g.stops.forEach((s,i)=>{const d=Math.abs(s.pos-pct);if(d<minDist){minDist=d;nearest=i;}});
+      selIdx=nearest;renderAll(p);
+    });
+  }
+  function rebind(id,fn){const el=document.getElementById(id);if(!el)return;const c=el.cloneNode(true);el.parentNode.replaceChild(c,el);c.addEventListener('input',fn);c.addEventListener('change',fn);return c;}
+  const typeId=p==='card'?'cardType':(p==='text'?'txtGradType':p+'GradType');
+  rebind(typeId,function(){const g=getGrad(p);if(g){g.type=this.value;updatePreviews();updateOutput();}});
+  const angleId=p==='card'?'cardAngle':(p==='text'?'txtGradAngle':p+'GradAngle');
+  const angleVId=p==='text'?'txtAngleV':p+'AngleV';
+  rebind(angleId,function(){const g=getGrad(p);if(g){g.angle=+this.value;sv(angleVId,this.value);updatePreviews();updateOutput();}});
+  rebind(angleVId,function(){const v=Math.max(0,Math.min(360,+this.value||0));const g=getGrad(p);if(g){g.angle=v;sv(angleId,v);updatePreviews();updateOutput();}});
+  const spfx=p==='text'?'txt':p;
+  rebind(spfx+'SelCol',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;sv(spfx+'SelHex',this.value);renderAll(p);}});
+  rebind(spfx+'SelHex',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;if(/^#[0-9a-f]{6}$/i.test(this.value))sv(spfx+'SelCol',this.value);renderAll(p);}});
+  rebind(spfx+'SelPos',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].pos=Math.max(0,Math.min(100,+this.value||0));renderAll(p);}});
+  rebind(spfx+'SelAlp',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(this.value/100).toFixed(2);sv(spfx+'SelAlpV',this.value);renderAll(p);}});
+  rebind(spfx+'SelAlpV',function(){const v=Math.max(0,Math.min(100,+this.value||0));const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(v/100).toFixed(2);sv(spfx+'SelAlp',v);renderAll(p);}});
+  const refId=p==='card'?'cardGradRef':(p==='text'?'txtGradRef':p+'GradRef');
+  rebind(refId,function(){
+    const ref=this.value;
+    if(ref&&ref!==p){
+      let src;if(ref.startsWith('saved:')){const n=ref.replace('saved:','');src=loadSaved().find(x=>x.name===n);}
+      else if(['card','text','icon'].includes(ref))src=gradients[ref];
+      if(src){const g=getGrad(p);if(g){g.type=src.type;g.angle=src.angle;g.stops=JSON.parse(JSON.stringify(src.stops));}}
+    }
+    this.value='';loadGradToUI();
+  });
 
-document.getElementById('addStopBtn').addEventListener('click', () => {
-  const last = stops[stops.length - 1]; const pos = Math.min(100, last.pos + 20);
-  stops.push({ color: '#666666', alpha: 1, pos }); stops.sort((a, b) => a.pos - b.pos);
-  selectedIdx = stops.findIndex(s => s.color === '#666666' && s.pos === pos);
-  renderAll();
-});
-
-document.getElementById('delSelStop').addEventListener('click', () => {
-  if (stops.length <= 2) return;
-  stops.splice(selectedIdx, 1); selectedIdx = Math.min(selectedIdx, stops.length - 1); renderAll();
-});
-
-/* ====== Selected panel events ====== */
-document.getElementById('selColor').addEventListener('input', function() {
-  if (!stops[selectedIdx]) return; stops[selectedIdx].color = this.value; document.getElementById('selHex').value = this.value; renderAll();
-});
-document.getElementById('selHex').addEventListener('input', function() {
-  if (!stops[selectedIdx]) return; stops[selectedIdx].color = this.value;
-  if (/^#[0-9a-f]{6}$/i.test(this.value)) document.getElementById('selColor').value = this.value; renderAll();
-});
-document.getElementById('selPos').addEventListener('input', function() {
-  if (!stops[selectedIdx]) return; stops[selectedIdx].pos = Math.max(0, Math.min(100, +this.value || 0)); renderAll();
-});
-document.getElementById('selAlpha').addEventListener('input', function() {
-  if (!stops[selectedIdx]) return; stops[selectedIdx].alpha = +(this.value / 100).toFixed(2); renderAll();
-});
-
-/* ====== Global events ====== */
-document.getElementById('gradType').addEventListener('change', function() {
-  document.getElementById('angleGroup').style.display = this.value === 'linear' ? 'flex' : 'none'; renderAll();
-});
-document.getElementById('gradAngle').addEventListener('input', function() {
-  document.getElementById('angleDisplay').textContent = this.value + 'deg'; renderAll();
-});
-document.getElementById('gradName').addEventListener('input', () => { updateOutput(); });
-
-/* ====== Core ====== */
-function getGradientCSS() {
-  const type = document.getElementById('gradType').value; const angle = +document.getElementById('gradAngle').value;
-  const parts = stops.map(s => `${toCSSColor(s.color, s.alpha)} ${s.pos}%`);
-  return type === 'linear' ? `linear-gradient(${angle}deg, ${parts.join(', ')})` : `radial-gradient(circle at center, ${parts.join(', ')})`;
-}
-function updatePreview() { document.getElementById('preview').style.background = getGradientCSS(); }
-function updateOutput() {
-  const name = document.getElementById('gradName').value.trim() || 'unnamed';
-  const type = document.getElementById('gradType').value; const angle = +document.getElementById('gradAngle').value;
-  let out = `name: "${name}"\ntype: ${type}\n`;
-  if (type === 'linear') out += `angle: ${angle}\n`;
-  out += `stops:\n`;
-  stops.forEach(s => { out += `  - color: "${s.color}" at ${s.pos}%` + (s.alpha < 1 ? ` alpha: ${s.alpha}` : '') + `\n`; });
-  out += `\n--- CSS ---\n` + getGradientCSS();
-  document.getElementById('outputCode').textContent = out;
+  // Smarks click to add stop
+  const smEl=document.getElementById(barPfx(p)+'Smarks');
+  if(smEl){
+    const smClone=smEl.cloneNode(true);smEl.parentNode.replaceChild(smClone,smEl);
+    smClone.addEventListener('click',function(e){
+      if(isDrag)return;
+      const g=getGrad(p);if(!g)return;
+      const barEl=document.getElementById(barPfx(p)+'Bar');
+      if(!barEl)return;
+      const r=barEl.getBoundingClientRect();
+      const pct=Math.round(((e.clientX-r.left)/r.width)*100);
+      const ns={color:neighborColor(g.stops,pct),alpha:1,pos:pct};
+      g.stops.push(ns);g.stops.sort((a,b)=>a.pos-b.pos);
+      selIdx=g.stops.indexOf(ns);renderAll(p);
+    });
+  }
 }
 
-document.getElementById('copyBtn').addEventListener('click', () => {
-  const text = document.getElementById('outputCode').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyBtn'); btn.textContent = '✅ 已複製'; setTimeout(() => btn.textContent = '📋 複製格式', 1500);
+['card','text','icon'].forEach(p=>bindGradEvents(p));
+
+// ---- Text events ----
+document.getElementById('txtContent').addEventListener('input',function(){txtState.content=this.value;updatePreviews();});
+document.getElementById('txtSize').addEventListener('input',function(){txtState.size=+this.value;updatePreviews();});
+document.getElementById('txtColor').addEventListener('input',function(){txtState.color=this.value;sv('txtColorHex',this.value);updatePreviews();});
+document.getElementById('txtColorHex').addEventListener('input',function(){if(/^#[0-9a-f]{6}$/i.test(this.value)){txtState.color=this.value;sv('txtColor',this.value);updatePreviews();}});
+document.getElementById('txtFont').addEventListener('change',function(){txtState.font=this.value;updatePreviews();});
+document.getElementById('txtGradEnabled').addEventListener('change',function(){txtState.gradientEnabled=this.checked;document.getElementById('txtGradControls').style.display=this.checked?'flex':'none';updatePreviews();updateOutput();});
+// Note: fx groups (shadow/glow) are always visible regardless of gradient toggle
+
+// ---- FX slider binders ----
+function bindFxSlider(id,stateObj,key,maxVal){
+  const r=document.getElementById(id),n=document.getElementById(id+'V');if(!r||!n)return;
+  r.addEventListener('input',function(){stateObj[key]=+this.value;sv(id+'V',this.value);updatePreviews();updateOutput();});
+  n.addEventListener('input',function(){const v=Math.max(0,Math.min(maxVal,+this.value||0));stateObj[key]=v;sv(id,v);updatePreviews();updateOutput();});
+}
+function bindFxColor(colorId,hexId,stateObj){
+  document.getElementById(colorId).addEventListener('input',function(){stateObj.color=this.value;sv(hexId,this.value);updatePreviews();updateOutput();});
+  document.getElementById(hexId).addEventListener('input',function(){if(/^#[0-9a-f]{6}$/i.test(this.value)){stateObj.color=this.value;sv(colorId,this.value);updatePreviews();updateOutput();}});
+}
+document.getElementById('txtShadowEnabled').addEventListener('change',function(){txtState.shadowEnabled=this.checked;updatePreviews();updateOutput();});
+bindFxColor('shColor','shColorHex',txtState.shadow);
+bindFxSlider('shAngle',txtState.shadow,'angle',360);
+bindFxSlider('shDist',txtState.shadow,'dist',50);
+bindFxSlider('shSize',txtState.shadow,'size',50);
+bindFxSlider('shOpacity',txtState.shadow,'opacity',100);
+
+document.getElementById('txtInnerShadow2Enabled').addEventListener('change',function(){txtState.innerShadow2Enabled=this.checked;updatePreviews();updateOutput();});
+bindFxColor('sh2Color','sh2ColorHex',txtState.innerShadow2);
+bindFxSlider('sh2Angle',txtState.innerShadow2,'angle',360);
+bindFxSlider('sh2Dist',txtState.innerShadow2,'dist',50);
+bindFxSlider('sh2Size',txtState.innerShadow2,'size',50);
+bindFxSlider('sh2Spread',txtState.innerShadow2,'spread',100);
+bindFxSlider('sh2Opacity',txtState.innerShadow2,'opacity',100);
+
+document.getElementById('txtDropShadowEnabled').addEventListener('change',function(){txtState.dropShadowEnabled=this.checked;updatePreviews();updateOutput();});
+bindFxColor('dsColor','dsColorHex',txtState.dropShadow);
+bindFxSlider('dsAngle',txtState.dropShadow,'angle',360);
+bindFxSlider('dsDist',txtState.dropShadow,'dist',50);
+bindFxSlider('dsSize',txtState.dropShadow,'size',50);
+bindFxSlider('dsSpread',txtState.dropShadow,'spread',100);
+bindFxSlider('dsOpacity',txtState.dropShadow,'opacity',100);
+
+document.getElementById('txtGlowEnabled').addEventListener('change',function(){txtState.glowEnabled=this.checked;updatePreviews();updateOutput();});
+bindFxColor('glColor','glColorHex',txtState.glow);
+bindFxSlider('glSize',txtState.glow,'size',50);
+bindFxSlider('glSpread',txtState.glow,'spread',100);
+bindFxSlider('glOpacity',txtState.glow,'opacity',100);
+
+// ---- Icon events ----
+document.getElementById('iconSelect').addEventListener('change',function(){iconState.type='builtin';iconState.value=this.value;updatePreviews();});
+document.getElementById('iconCustomBtn').addEventListener('click',()=>document.getElementById('iconUpload').click());
+document.getElementById('iconUpload').addEventListener('change',function(e){if(e.target.files&&e.target.files[0]){const r=new FileReader();r.onload=(ev)=>{iconState.type='custom';iconState.customUrl=ev.target.result;updatePreviews();};r.readAsDataURL(e.target.files[0]);}});
+document.getElementById('iconSize').addEventListener('input',function(){iconState.size=Math.max(16,Math.min(300,+this.value||16));updatePreviews();});
+
+// ---- loadGradToUI ----
+function loadGradToUI(){
+  const p=activeGrad;const g=gradients[p];if(!g)return;
+  if(p==='text'){
+    document.getElementById('txtGradEnabled').checked=txtState.gradientEnabled;
+    document.getElementById('txtGradControls').style.display=txtState.gradientEnabled?'flex':'none';
+    sv('txtColor',txtState.color);sv('txtColorHex',txtState.color);
+    document.getElementById('txtShadowEnabled').checked=txtState.shadowEnabled;
+    document.getElementById('txtInnerShadow2Enabled').checked=txtState.innerShadow2Enabled;
+    document.getElementById('txtDropShadowEnabled').checked=txtState.dropShadowEnabled;
+    document.getElementById('txtGlowEnabled').checked=txtState.glowEnabled;
+    loadFxToUI('shadow');loadFxToUI('innerShadow2');loadFxToUI('dropShadow');loadFxToUI('glow');
+  }
+  selIdx=0;renderAll(p);
+}
+
+// ---- Effect calculations ----
+function calcXY(angle,dist){
+  const rad=angle*Math.PI/180;
+  return {x:Math.round(Math.sin(rad)*dist*10)/10, y:Math.round(-Math.cos(rad)*dist*10)/10};
+}
+
+function updateSvgFilter(){
+  if(!txtState.shadowEnabled)return;
+  const sh=txtState.shadow;const a=sh.opacity/100;
+  const {r,g,b}=hex2rgb(sh.color);
+  const flood=document.getElementById('isFlood');
+  if(flood)flood.setAttribute('flood-color',`rgba(${r},${g},${b},${a})`);
+  const {x,y}=calcXY(sh.angle,sh.dist);
+  const offset=document.getElementById('isOffset');
+  if(offset){offset.setAttribute('dx',x);offset.setAttribute('dy',y);}
+  const blur=document.getElementById('isBlur');
+  if(blur)blur.setAttribute('stdDeviation',sh.size*0.5);
+}
+
+function textInnerShadow2Str(){
+  if(!txtState.innerShadow2Enabled)return'';
+  const sh=txtState.innerShadow2;const a=sh.opacity/100;const c=toCss(sh.color,a);const b=sh.size;
+  const {x,y}=calcXY(sh.angle,sh.dist);
+  const off=sh.spread>0?sh.spread*0.5:1;
+  return[`${x}px ${y}px ${b}px ${c}`,`${-off}px 0 ${b}px ${c}`,`${off}px 0 ${b}px ${c}`,`0 ${-off}px ${b}px ${c}`,`0 ${off}px ${b}px ${c}`].join(', ');
+}
+function textGlowStr(){
+  if(!txtState.glowEnabled)return'';
+  const gl=txtState.glow;const a=gl.opacity/100;const c=toCss(gl.color,a);const s=gl.size;
+  return`0 0 ${s*0.5}px ${c}, 0 0 ${s}px ${c}`+(s>=8?`, 0 0 ${s*1.5}px ${c}`:'');
+}
+function dropShadowCssFilter(){
+  if(!txtState.dropShadowEnabled)return'';
+  const ds=txtState.dropShadow;const a=ds.opacity/100;
+  const {x,y}=calcXY(ds.angle,ds.dist);
+  const {r,g,b}=hex2rgb(ds.color);
+  return`drop-shadow(${x}px ${y}px ${ds.size}px rgba(${r},${g},${b},${a}))`;
+}
+
+// ---- Icon SVGs ----
+const iconSvgs={
+  star:'<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  diamond:'<svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  crown:'<svg viewBox="-2 0 26 24"><path d="M2 19h20l-2-11-6 4-4-8-4 8-6-4-2 11z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  fire:'<svg viewBox="0 0 24 24"><path d="M12 22c4 0 6-3 6-6 0-4-3-8-6-10-3 2-6 6-6 10 0 3 2 6 6 6z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  lightning:'<svg viewBox="0 0 24 24"><polygon points="13,2 4,14 12,14 11,22 20,10 12,10" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  coin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="#000" stroke-width="2"/></svg>',
+  heart:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  target:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="1" fill="#000"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2M6 2h12v5a6 6 0 0 1-12 0V2zM12 13v7M8 22h8" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  rocket:'<svg viewBox="0 0 24 24"><path d="M12 2s-5 6-5 11a5 5 0 0 0 10 0c0-5-5-11-5-11z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2" fill="none" stroke="#000" stroke-width="2"/><path d="M8 17l-3 5M16 17l3 5" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+};
+
+// ---- Update previews ----
+function updatePreviews(){
+  // Card
+  const cg=gradients.card;
+  document.getElementById('cardBgFill').style.background=gradCss(cg);
+
+  // Text
+  const tEl=document.getElementById('pText');
+  const tWrap=document.getElementById('pTextWrap');
+  const tGrad=gradients.text;
+  tEl.textContent=txtState.content;
+  tEl.style.fontSize=txtState.size+'px';
+  tEl.style.fontFamily=txtState.font;
+  tEl.style.fontWeight='700';
+  tEl.style.lineHeight='1';
+
+  // Inner shadow 1: SVG filter applied to tEl
+  updateSvgFilter();
+  if(txtState.shadowEnabled){
+    tEl.style.filter='url(#innerShadow1Filter)';
+  } else {
+    tEl.style.filter='none';
+  }
+
+  // Gradient
+  if(txtState.gradientEnabled&&tGrad){
+    tEl.style.background=gradCss(tGrad);
+    tEl.style.webkitBackgroundClip='text';tEl.style.backgroundClip='text';
+    tEl.style.webkitTextFillColor='transparent';tEl.style.color='transparent';
+  } else {
+    tEl.style.background='none';tEl.style.webkitBackgroundClip='unset';tEl.style.backgroundClip='unset';
+    tEl.style.webkitTextFillColor='unset';tEl.style.color=txtState.color;
+  }
+
+  // text-shadow: inner2 + glow
+  const shadows=[];
+  if(txtState.innerShadow2Enabled)shadows.push(textInnerShadow2Str());
+  if(txtState.glowEnabled)shadows.push(textGlowStr());
+  tEl.style.textShadow=shadows.length?shadows.join(', '):'none';
+
+  // Drop shadow: filter on wrapper (behind text appearance via filter)
+  tWrap.style.filter=txtState.dropShadowEnabled?dropShadowCssFilter():'none';
+
+  // Icon
+  const iEl=document.getElementById('pIcon');iEl.innerHTML='';
+  const iGrad=gradients.icon;
+  if(iconState.type==='builtin'){
+    const size=iconState.size;const svgKey=iconState.value||'star';
+    const svgStr=iconSvgs[svgKey]||iconSvgs.star;
+    let html;
+    if(iGrad){
+      const gid='ig'+Date.now();
+      let def=iGrad.type==='linear'?`<linearGradient id="${gid}" gradientTransform="rotate(${iGrad.angle} 0.5 0.5)">`:`<radialGradient id="${gid}">`;
+      def+=iGrad.stops.map(s=>`<stop offset="${s.pos}%" stop-color="${toCss(s.color,s.alpha)}"/>`).join('');
+      def+=iGrad.type==='linear'?'</linearGradient>':'</radialGradient>';
+      html=svgStr.replace('>',`><defs>${def}</defs>`).replace(/stroke="#000"/g,`stroke="url(#${gid})"`).replace(/fill="#000"/g,`fill="url(#${gid})"`);
+    } else {
+      html=svgStr.replace(/stroke="#000"/g,'stroke="rgba(255,255,255,0.6)"').replace(/fill="#000"/g,'fill="rgba(255,255,255,0.6)"');
+    }
+    iEl.innerHTML=html;
+    const svgEl=iEl.querySelector('svg');
+    if(svgEl){svgEl.style.width=size+'px';svgEl.style.height=size+'px';svgEl.style.display='block';}
+  } else if(iconState.customUrl){
+    const img=document.createElement('img');img.src=iconState.customUrl;
+    img.style.width=iconState.size+'px';img.style.height=iconState.size+'px';img.style.objectFit='contain';
+    iEl.appendChild(img);
+  }
+}
+
+function updateOutput(){
+  const p=activeGrad;const g=gradients[p];if(!g){document.getElementById('outputCode').textContent='Copy output here';return;}
+  const sStr=(g)=>g.stops.map(s=>`      - color:"${s.color}" at ${s.pos}%${s.alpha<1?` alpha:${s.alpha}`:''}`).join('\n');
+  let out='';
+  if(p==='card'){
+    out=`card:\n  type:${g.type}\n  angle:${g.angle}\n  stops:\n${sStr(g)}`;
+  } else if(p==='text'){
+    out=`text:\n  content:${JSON.stringify(txtState.content)}\n  font:${txtState.font}\n  size:${txtState.size}\n  color:"${txtState.color}"\n  gradient:\n    enabled:${txtState.gradientEnabled}\n`;
+    if(txtState.gradientEnabled){out+=`    type:${g.type}\n    angle:${g.angle}\n    stops:\n${sStr(g)}\n`;}
+    if(txtState.shadowEnabled){const s=txtState.shadow;out+=`  inner-shadow-1:\n    color:"${s.color}"\n    angle:${s.angle}\n    dist:${s.dist}\n    size:${s.size}\n    opacity:${s.opacity}\n`;}
+    if(txtState.innerShadow2Enabled){const s=txtState.innerShadow2;out+=`  inner-shadow-2:\n    color:"${s.color}"\n    angle:${s.angle}\n    dist:${s.dist}\n    size:${s.size}\n    spread:${s.spread}\n    opacity:${s.opacity}\n`;}
+    if(txtState.dropShadowEnabled){const s=txtState.dropShadow;out+=`  shadow:\n    color:"${s.color}"\n    angle:${s.angle}\n    dist:${s.dist}\n    size:${s.size}\n    spread:${s.spread}\n    opacity:${s.opacity}\n`;}
+    if(txtState.glowEnabled){const gl=txtState.glow;out+=`  glow:\n    color:"${gl.color}"\n    size:${gl.size}\n    spread:${gl.spread}\n    opacity:${gl.opacity}\n`;}
+  } else if(p==='icon'){
+    out=`icon:\n  type:${iconState.type}\n  value:${iconState.type==='custom'?'upload':iconState.value}\n  size:${iconState.size}\n  fill:\n    type:${g.type}\n    angle:${g.angle}\n    stops:\n${sStr(g)}`;
+  }
+  document.getElementById('outputCode').textContent=out;
+}
+function updateAll(){updatePreviews();updateOutput();}
+
+// ---- Import ----
+document.getElementById('importBtn').addEventListener('click',()=>{
+  const raw=document.getElementById('importInput').value;if(!raw.trim())return;
+  try{
+    const lines=raw.split('\n').map(l=>l.trim());let sec='';
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      if(l.startsWith('card:'))sec='card';
+      else if(l.startsWith('text:'))sec='text';
+      else if(l.startsWith('icon:'))sec='icon';
+      else if(l.startsWith('inner-shadow-1:'))sec='sh1';
+      else if(l.startsWith('inner-shadow-2:'))sec='sh2';
+      else if(l.startsWith('shadow:'))sec='ds';
+      else if(l.startsWith('glow:'))sec='glow';
+      else if(l.startsWith('gradient:'))sec=sec+'-grad';
+      if(sec==='card'||sec==='card-grad'){
+        if(l.startsWith('type:')&&sec==='card')gradients.card.type=l.replace('type:','').trim();
+        if(l.startsWith('angle:'))gradients.card.angle=+l.replace('angle:','');
+        if(l.startsWith('- color:')){const cm=l.match(/color:"([^"]+)"/),pm=l.match(/at (\d+)%/),am=l.match(/alpha:([\d.]+)/);if(cm&&pm){if(sec==='card'&&i===lines.findIndex(x=>x.startsWith('- color:')))gradients.card.stops=[];gradients.card.stops.push({color:cm[1],pos:+pm[1],alpha:am?+am[1]:1});}}
+      }
+    }
+    loadGradToUI();updateAll();
+    document.getElementById('importInput').value='';
+    const btn=document.getElementById('importBtn');btn.textContent='✓';setTimeout(()=>btn.textContent=LANG_DATA[currentLang].importBtn,1200);
+  }catch(e){alert('Parse error: '+e.message);}
+});
+
+document.getElementById('copyBtn').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('outputCode').textContent).then(()=>{
+    const btn=document.getElementById('copyBtn');btn.innerHTML='✓';
+    setTimeout(()=>btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"><rect x="9" y="2" width="13" height="16" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>',1500);
   });
 });
 
-window.addEventListener('resize', () => { renderStopMarkers(); });
-renderAll(); renderSavedList();
+// ---- Language ----
+const LANG_DATA={
+  en:{
+    langLabel:'Language',title:'Gradient Renderer',cardGrad:'Card',type:'Type',addStyle:'Save Style',
+    applyGrad:'Apply Gradient',savedToggle:'Saved Styles',stops:'Color Stops',
+    opacity:'Opacity',angle:'Angle',textContent:'Text',fontSize:'Size',color:'Color',
+    font:'Font',textGrad:'Text Gradient',
+    innerShadow1:'Inner Shadow 1',innerShadow2:'Inner Shadow 2',shadow:'Shadow',
+    shAngle:'Angle',distance:'Dist',shSize:'Size',shSpread:'Spread',shOpacity:'Opacity',
+    glow:'Glow',glSize:'Size',glSpread:'Spread',glOpacity:'Opacity',
+    builtinIcon:'Icons',custom:'Custom',customPreview:'Upload',size:'Size',
+    iconGrad:'Icon Gradient',output:'Output',import:'Import',
+    outputPlaceholder:'Copy output here',importBtn:'Import',
+    saveModalTitle:'Save Style',name:'Name',confirm:'Save',cancel:'Cancel',emptySaved:'(none)',
+  },
+  zh:{
+    langLabel:'語言',title:'漸層渲染器',cardGrad:'卡片',type:'類型',addStyle:'保存樣式',
+    applyGrad:'套用漸層',savedToggle:'保存樣式清單',stops:'色標',
+    opacity:'不透明度',angle:'角度',textContent:'文字內容',fontSize:'大小',color:'顏色',
+    font:'字體',textGrad:'文字漸層',
+    innerShadow1:'內陰影1',innerShadow2:'內陰影2',shadow:'陰影',
+    shAngle:'角度',distance:'距離',shSize:'尺寸',shSpread:'傳播',shOpacity:'不透明度',
+    glow:'Glow',glSize:'尺寸',glSpread:'傳播',glOpacity:'不透明度',
+    builtinIcon:'內建圖示',custom:'自訂',customPreview:'自定義',size:'大小',
+    iconGrad:'圖示漸層',output:'輸出',import:'載入',
+    outputPlaceholder:'調整後複製這裡',importBtn:'載入',
+    saveModalTitle:'保存樣式',name:'名稱',confirm:'保存',cancel:'取消',emptySaved:'無',
+  }
+};
+let currentLang='en';
+
+function applyLang(lang){
+  currentLang=lang;const t=LANG_DATA[lang];
+  document.querySelectorAll('[data-lang]').forEach(el=>{const k=el.dataset.lang;if(t[k]!==undefined)el.textContent=t[k];});
+  document.title=t.title;
+  document.documentElement.lang=lang==='en'?'en':'zh-TW';
+  const inp=document.getElementById('importInput');
+  inp.placeholder=lang==='en'?'Paste format and press Import':'貼上格式後按「載入」';
+  const oc=document.getElementById('outputCode');
+  if(oc&&!oc.textContent.match(/^(card:|text:|icon:)/))oc.textContent=t.outputPlaceholder;
+}
+
+document.getElementById('langSelect').addEventListener('change',function(){
+  applyLang(this.value);renderSaved();
+});
+
+// ---- Color picker ----
+function hex2rgb(h){const c=h.replace('#','');return[parseInt(c.substr(0,2),16),parseInt(c.substr(2,2),16),parseInt(c.substr(4,2),16)];}
+function rgb2hex(r,g,b){return'#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');}
+function hsb2rgb(h,s,b){h/=360;s/=100;b/=100;const i=Math.floor(h*6),f=h*6-i,p=b*(1-s),q=b*(1-f*s),t=b*(1-(1-f)*s);const m=i%6;const[a,d,e]=m===0?[b,t,p]:m===1?[q,b,p]:m===2?[p,b,t]:m===3?[p,q,b]:m===4?[t,p,b]:[b,p,q];return[Math.round(a*255),Math.round(d*255),Math.round(e*255)];}
+function rgb2hsb(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=60*(((g-b)/d)%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);}if(h<0)h+=360;return[Math.round(h),Math.round(d?d/mx*100:0),Math.round(mx*100)];}
+
+const cpCanvas=document.getElementById('cpMapCanvas'),cpBarCanvas=document.getElementById('cpBarCanvas');
+const cpCtx=cpCanvas.getContext('2d'),cpBarCtx=cpBarCanvas.getContext('2d');
+let cpState={h:0,s:100,b:100,mode:'h',target:null,savedColor:'#000000'};
+function cpRenderMap(){
+  const w=200,h=200,img=cpCtx.createImageData(w,h),d=img.data,st=cpState;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    let hh=st.h,ss=st.s,bb=st.b;
+    if(st.mode==='h'){ss=x/w*100;bb=(1-y/h)*100;}
+    else if(st.mode==='s'){hh=x/w*360;bb=(1-y/h)*100;}
+    else{hh=x/w*360;ss=(1-y/h)*100;}
+    const[r,g,b]=hsb2rgb(hh,ss,bb);const p=(y*w+x)*4;d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=255;
+  }
+  cpCtx.putImageData(img,0,0);
+  const sx=st.mode==='h'?st.s/100*w:st.mode==='s'?st.h/360*w:st.h/360*w;
+  const sy=st.mode==='h'?(1-st.b/100)*h:st.mode==='s'?(1-st.b/100)*h:(1-st.s/100)*h;
+  const ch=document.getElementById('cpCrosshair');
+  ch.style.left=sx+'px';ch.style.top=sy+'px';
+}
+function cpRenderBar(){
+  const w=18,h=200,img=cpBarCtx.createImageData(w,h),d=img.data;
+  for(let y=0;y<h;y++){const[r,g,b]=hsb2rgb(y/h*360,100,100);for(let x=0;x<w;x++){const p=(y*w+x)*4;d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=255;}}
+  cpBarCtx.putImageData(img,0,0);
+  const ind=document.getElementById('cpBarIndicator');
+  ind.style.top=(cpState.h/360*h)+'px';
+}
+function cpSyncInputs(){
+  const[h,s,b]=[cpState.h,cpState.s,cpState.b];
+  sv('cpH',h);sv('cpS',s);sv('cpB',b);
+  const[r,g,bv]=hsb2rgb(h,s,b);
+  sv('cpR',r);sv('cpG',g);sv('cpBB',bv);
+  sv('cpHex',rgb2hex(r,g,bv));
+  document.getElementById('cpPreview').style.background=rgb2hex(r,g,bv);
+  document.querySelectorAll('.cp-mode label').forEach(el=>el.classList.toggle('active',el.dataset.mode===cpState.mode));
+}
+function cpSetColor(h,s,b){cpState.h=Math.round(h);cpState.s=Math.round(Math.max(0,Math.min(100,s)));cpState.b=Math.round(Math.max(0,Math.min(100,b)));}
+function cpOpen(target,hex){
+  cpState.savedColor=hex;cpState.target=target;
+  const[r,g,b]=hex2rgb(hex);const[h,s,bv]=rgb2hsb(r,g,b);
+  cpSetColor(h,s,bv);cpRenderBar();cpRenderMap();cpSyncInputs();
+  document.getElementById('cpOverlay').style.display='flex';
+}
+function cpApply(){
+  if(cpState.target){
+    const[r,g,b]=hsb2rgb(cpState.h,cpState.s,cpState.b);
+    const hex=rgb2hex(r,g,b);
+    cpState.target.value=hex;
+    cpState.target.style.background=hex;
+    cpState.target.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  document.getElementById('cpOverlay').style.display='none';
+}
+
+// Canvas map events
+let cpDragging=false;
+cpCanvas.addEventListener('mousedown',function(e){cpDragging=true;cpMapPick(e);});
+document.addEventListener('mousemove',function(e){if(cpDragging)cpMapPick(e);});
+document.addEventListener('mouseup',()=>{cpDragging=false;});
+function cpMapPick(e){
+  const r=cpCanvas.getBoundingClientRect();
+  let x=(e.clientX-r.left)/r.width*200,y=(e.clientY-r.top)/r.height*200;
+  x=Math.max(0,Math.min(200,x));y=Math.max(0,Math.min(200,y));
+  if(cpState.mode==='h'){cpSetColor(cpState.h,x/200*100,(1-y/200)*100);}
+  else if(cpState.mode==='s'){cpSetColor(x/200*360,cpState.s,(1-y/200)*100);}
+  else{cpSetColor(x/200*360,(1-y/200)*100,cpState.b);}
+  cpRenderMap();cpSyncInputs();
+}
+// Bar events
+cpBarCanvas.addEventListener('mousedown',function(e){cpBarPick(e);cpBarDragging=true;});
+document.addEventListener('mousemove',function(e){if(cpBarDragging)cpBarPick(e);});
+document.addEventListener('mouseup',()=>{cpBarDragging=false;});
+let cpBarDragging=false;
+function cpBarPick(e){
+  const r=cpBarCanvas.getBoundingClientRect();
+  let y=(e.clientY-r.top)/r.height*200;y=Math.max(0,Math.min(200,y));
+  cpState.h=Math.round(y/200*360);cpRenderBar();cpRenderMap();cpSyncInputs();
+}
+// Mode switch
+document.querySelectorAll('.cp-mode label').forEach(el=>{
+  el.addEventListener('click',function(){cpState.mode=this.dataset.mode;cpRenderMap();cpSyncInputs();});
+});
+// Input sync
+['cpH','cpS','cpB'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    const v=+this.value||0;
+    if(id==='cpH'){cpState.h=Math.max(0,Math.min(360,v));cpRenderBar();}
+    else if(id==='cpS')cpState.s=Math.max(0,Math.min(100,v));
+    else cpState.b=Math.max(0,Math.min(100,v));
+    cpRenderMap();cpSyncInputs();
+  });
+});
+['cpR','cpG','cpBB'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    const v=Math.max(0,Math.min(255,+this.value||0));
+    const r=+document.getElementById('cpR').value||0,g=+document.getElementById('cpG').value||0,bv=+document.getElementById('cpBB').value||0;
+    const[h,s,b]=rgb2hsb(r,g,bv);cpSetColor(h,s,b);cpRenderBar();cpRenderMap();cpSyncInputs();
+  });
+});
+document.getElementById('cpHex').addEventListener('input',function(){
+  const v=this.value.trim();
+  if(/^#[0-9a-f]{6}$/i.test(v)){const[r,g,b]=hex2rgb(v);const[h,s,bv]=rgb2hsb(r,g,b);cpSetColor(h,s,bv);cpRenderBar();cpRenderMap();cpSyncInputs();}
+});
+document.getElementById('cpOk').addEventListener('click',cpApply);
+document.getElementById('cpCancel').addEventListener('click',function(){
+  if(cpState.target){cpState.target.value=cpState.savedColor;cpState.target.style.background=cpState.savedColor;}
+  document.getElementById('cpOverlay').style.display='none';
+});
+
+// Replace native color inputs with swatches
+function cpInitSwatches(){
+  document.querySelectorAll('input[type="color"]').forEach(inp=>{
+    inp.style.display='none';
+    const sw=document.createElement('div');sw.className='color-swatch';sw.style.background=inp.value;
+    inp.parentNode.insertBefore(sw,inp.nextSibling);
+    sw.addEventListener('click',function(){cpOpen(inp,inp.value);});
+    inp.addEventListener('input',function(){sw.style.background=this.value;});
+  });
+}
+
+// Init
+applyLang('en');
+loadGradToUI();
+renderSaved();
+updateAll();
+cpInitSwatches();
 </script>
 </body>
 </html>

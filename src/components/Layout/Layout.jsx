@@ -23,12 +23,16 @@ export default function Layout({ children }) {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
         <defs>
-          <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#FFF8DC" />
-            <stop offset="30%" stopColor="#FFD700" />
-            <stop offset="60%" stopColor="#FF8C00" />
-            <stop offset="85%" stopColor="#8B6914" />
-            <stop offset="100%" stopColor="#FFD700" />
+          <linearGradient id="goldGrad" x1="1" y1="0.16" x2="0" y2="0.84">
+            <stop offset="0%" stopColor="#663c00" />
+            <stop offset="14%" stopColor="#8b5913" />
+            <stop offset="18%" stopColor="#ad6501" />
+            <stop offset="26%" stopColor="#e6a800" />
+            <stop offset="38%" stopColor="#eccd79" />
+            <stop offset="48%" stopColor="#ffffff" />
+            <stop offset="65%" stopColor="#fbe198" />
+            <stop offset="74%" stopColor="#f3bf4f" />
+            <stop offset="100%" stopColor="#945600" />
           </linearGradient>
         </defs>
       </svg>

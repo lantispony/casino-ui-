@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -22,32 +22,48 @@ import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
 import Beams from '../components/animations/Beams';
 
-function FixedNumber({ value, digits = 8 }) {
-  const str = String(Math.floor(value)).padStart(digits, '0');
-  const parts = str.replace(/\B(?=(\d{3})+(?!\d))/g, ',').split('');
+const STRIP = [0,1,2,3,4,5,6,7,8,9,0];
+const GOLD_02 = 'linear-gradient(0deg, #ffd970 7%, #663c00 29%, #8f5300 34%, #ad6501 40%, #e6a800 51%, #dedede 53%, #f3bf4f 67%, #754400 90%, #292000 100%)';
+
+function DigitRoller({ digit, prevDigit }) {
+  const h = 36;
+  const n = parseInt(digit, 10);
+  const prev = parseInt(prevDigit, 10);
+  const [index, setIndex] = useState(isNaN(n) ? 0 : n);
+  const [transition, setTransition] = useState("none");
+
+  useEffect(() => {
+    if (isNaN(n)) return;
+    if (!isNaN(prev) && prev === 9 && n === 0) {
+      setTransition("transform 0.4s ease");
+      setIndex(10);
+      const timer = setTimeout(() => {
+        setTransition("none");
+        setIndex(0);
+      }, 420);
+      return () => clearTimeout(timer);
+    } else {
+      setTransition("transform 0.4s ease");
+      setIndex(n);
+    }
+  }, [digit, prevDigit]);
+
   return (
-    <>
-      <span style={{ display: 'inline-block', width: 20, textAlign: 'center' }}>$</span>
-      {parts.map((ch, i) => (
-        <AnimatePresence key={i}>
-          <motion.span
-            key={`${i}-${ch}`}
-            initial={{ y: -30 }}
-            animate={{ y: 0 }}
-            exit={{ y: 30 }}
-            transition={{ duration: 0.15, ease: 'easeInOut' }}
-            style={{
-              display: 'inline-block',
-              width: ch === ',' ? 16 : 24,
-              textAlign: 'center',
-              overflow: 'hidden',
-            }}
-          >
-            {ch}
-          </motion.span>
-        </AnimatePresence>
-      ))}
-    </>
+    <div style={{ height: h, overflow: "hidden", display: "inline-block", verticalAlign: "middle" }}>
+      <div style={{ transform: `translateY(${-index * h}px)`, transition }}>
+        {STRIP.map((d, i) => (
+          <div key={i} style={{
+            height: h,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+            width: "0.64em",
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: 36,
+            background: GOLD_02, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent',
+          }}>{d}</div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -56,12 +72,16 @@ export default function Lobby() {
   const [showWin, setShowWin] = useState(false);
   const [showCoins, setShowCoins] = useState(false);
   const [jackpot, setJackpot] = useState(12847392);
+  const prevJackpotRef = useRef(12847392);
   const isNarrow = useMediaQuery('(max-width: 1450px)');
   const isTiny = useMediaQuery('(max-width: 800px)');
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setJackpot((prev) => prev + 1);
+      setJackpot(prev => {
+        prevJackpotRef.current = prev;
+        return prev + 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -89,15 +109,28 @@ export default function Lobby() {
           border: '1px solid rgba(255,215,0,0.2)', borderRadius: 16,
           padding: '14px 32px', backdropFilter: 'blur(10px)',
         }}>
-          <Coin size={32} color="url(#goldGrad)" weight="bold" />
           <div style={{ textAlign: 'center' }}>
             <div style={{ color: '#666', fontSize: 10, letterSpacing: 4, fontWeight: 600 }}>PROGRESSIVE JACKPOT</div>
             <div style={{
-              fontSize: 36, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif",
-              fontVariantNumeric: 'tabular-nums', letterSpacing: 2, whiteSpace: 'nowrap',
-              minWidth: 300,
+              display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap',
+              fontFamily: "'Rajdhani',sans-serif", fontWeight: 700,
+              fontSize: 36, lineHeight: '36px',
             }}>
-              <FixedNumber value={jackpot} />
+              {(() => {
+                const fmt = (n) => n.toLocaleString("en-US");
+                const curr = fmt(jackpot);
+                const prev = fmt(prevJackpotRef.current);
+                return (
+                  <>
+                    <span style={{ display:'inline-block', verticalAlign:'middle', width:'0.5em', textAlign:'center', background:GOLD_02, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', color:'transparent' }}>$</span>
+                    {curr.split('').map((ch, i) =>
+                      /\d/.test(ch)
+                        ? <DigitRoller key={i} digit={ch} prevDigit={prev[i] || ch} />
+                        : <span key={i} style={{ display:'inline-block', verticalAlign:'middle', width: ch===',' ? '0.4em' : '0.3em', textAlign:'center', background:GOLD_02, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', color:'transparent' }}>{ch}</span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
           <button onClick={triggerWin} style={{
@@ -122,7 +155,7 @@ export default function Lobby() {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.6 }}
             style={{
-              position: 'relative', height: isTiny ? 320 : 380, borderRadius: 24, overflow: 'hidden',
+              position: 'relative', zIndex: 10, height: isTiny ? 320 : 380, borderRadius: 24, overflow: 'hidden',
               background: currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
               display: 'flex', alignItems: 'center', padding: '0 60px',
             }}
@@ -159,15 +192,11 @@ export default function Lobby() {
               }}>
                 {banners[currentBanner].tag}
               </div>
-              <motion.h1
-                initial={{ x: -30, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="jackpot-text"
-                style={{ fontSize: isTiny ? 30 : 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1, textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}
+              <h1
+                style={{ fontSize: isTiny ? 30 : 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1, background: GOLD_02, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}
               >
                 {banners[currentBanner].title}
-              </motion.h1>
+              </h1>
               <motion.p
                 initial={{ x: -30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -212,12 +241,6 @@ export default function Lobby() {
                   objectFit: 'cover', objectPosition: 'top right',
                 }} />
             </div>
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%',
-              borderRadius: '0 0 24px 24px',
-              background: 'linear-gradient(to bottom, transparent, #0A0A0A)',
-              pointerEvents: 'none', zIndex: 3,
-            }} />
           </>
         )}
         <div style={{

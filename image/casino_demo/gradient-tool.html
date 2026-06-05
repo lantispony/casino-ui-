@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漸層渲染器</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', -apple-system, BlinkMacSystemFont, sans-serif; background: #0A0A0A; color: #eee; display: flex; height: 100vh; user-select: none; }
+
+.left { width: 420px; min-width: 420px; padding: 24px 18px 16px 18px; overflow-y: auto; border-right: 1px solid rgba(255,215,0,0.05); display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; }
+.left::-webkit-scrollbar { display: none; }
+.center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; gap: 24px; overflow-y: auto; position: relative; }
+
+.right { width: 340px; min-width: 340px; padding: 24px 18px 16px 18px; display: flex; flex-direction: column; gap: 10px; border-left: 1px solid rgba(255,215,0,0.05); overflow-y: auto; background: #0D0D0D; }
+
+.lang-select { position: absolute; top: 12px; right: 12px; z-index: 10; background: #1a1a1a; border: 1px solid rgba(255,215,0,0.12); border-radius: 5px; padding: 3px 8px; color: #FFD700; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; outline: none; }
+.lang-select:focus { border-color: rgba(255,215,0,0.35); }
+
+h2 { font-size: 14px; color: #FFD700; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; }
+.lbl { font-size: 13px; color: #fff; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+
+.group { display: flex; flex-direction: column; gap: 12px; background: rgba(255,215,0,0.015); border: 1px solid rgba(255,215,0,0.05); border-radius: 8px; padding: 14px 16px; }
+.row { display: flex; gap: 8px; align-items: center; }
+
+input[type="text"], input[type="number"], select, textarea {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,215,0,0.12); border-radius: 5px; padding: 5px 8px; color: #f0f0f0; font-size: 15px; outline: none; transition: border 0.2s;
+}
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+select { background: #1a1a1a; color: #f0f0f0; border: 1px solid rgba(255,215,0,0.12); border-radius: 5px; padding: 5px 8px; font-size: 15px; outline: none; transition: border 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: rgba(255,215,0,0.35); }
+input[type="range"] { width: 100%; accent-color: #FFD700; height: 2px; background: rgba(255,255,255,0.05); border-radius: 2px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 10px; width: 10px; border-radius: 50%; background: #FFD700; cursor: pointer; }
+
+input[type="checkbox"] { accent-color: #FFD700; width: 16px; height: 16px; cursor: pointer; }
+
+.tabs { display: flex; gap: 3px; }
+.tab { padding: 5px 14px; font-size: 13px; font-weight: 700; letter-spacing: 1px; border: 1px solid rgba(255,215,0,0.06); border-radius: 5px; cursor: pointer; background: transparent; color: rgba(255,255,255,0.25); transition: all 0.2s; text-transform: uppercase; }
+.tab.active { background: rgba(255,215,0,0.06); border-color: rgba(255,215,0,0.15); color: #FFD700; }
+.tab:hover { border-color: rgba(255,215,0,0.12); color: rgba(255,255,255,0.5); }
+
+/* Gradient Bar */
+.gbar { height: 24px; border-radius: 5px; cursor: pointer; position: relative; border: 1px solid rgba(255,215,0,0.06); background: repeating-conic-gradient(#1a1a1a 0% 25%, #2a2a2a 0% 50%) 0 0 / 8px 8px; overflow: hidden; }
+.gbar-fill { height: 100%; border-radius: 4px; position: relative; z-index: 1; }
+.smarks { position: relative; height: 18px; }
+.smark { position: absolute; width: 16px; height: 18px; margin-left: -8px; z-index: 2; display: flex; flex-direction: column; align-items: center; cursor: ew-resize; }
+.smark .arr { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid #666; transition: border-top-color 0.15s; }
+.smark.active .arr { border-top-color: #FFD700; }
+.smark .ln { width: 2px; height: 8px; background: rgba(255,255,255,0.25); margin-top: -2px; }
+
+/* Selected Stop */
+.sel-stop { background: rgba(255,215,0,0.02); border-radius: 6px; padding: 14px 18px; border: 1px solid rgba(255,215,0,0.06); display: flex; flex-direction: column; gap: 12px; }
+.sel-stop .sr { display: flex; gap: 10px; align-items: center; }
+input[type="color"] { width: 26px; height: 26px; border: none; outline: 1px solid rgba(255,215,0,0.15); outline-offset: -1px; cursor: pointer; background: none; padding: 0; flex-shrink: 0; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0 !important; width: 100%; height: 100%; }
+input[type="color"]::-webkit-color-swatch { border: none !important; border-radius: 0; width: 100%; height: 100%; }
+.sel-stop .hx { flex: 1; }
+.sel-stop .ps { width: 48px; text-align: center; }
+.sel-stop .del { cursor: pointer; color: #ff4444; font-size: 18px; width: 20px; text-align: center; }
+.sel-stop .sl { display: flex; gap: 6px; align-items: center; }
+.sel-stop .sl label { font-size: 13px; color: #fff; min-width: 52px; text-transform: uppercase; flex-shrink: 0; }
+.sel-stop .sl input[type="range"] { flex: 1; }
+.sel-stop .sl .sv { font-size: 14px; color: #FFD700; width: 48px; text-align: center; font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,215,0,0.12); border-radius: 4px; padding: 0 4px; height: 22px; box-sizing: border-box; -moz-appearance: textfield; }
+.sel-stop .sl .sv::-webkit-outer-spin-button, .sel-stop .sl .sv::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sel-stop .sl .sv:focus { color: #fff; outline: 1px solid rgba(255,215,0,0.3); }
+.sel-stop .sl .sv2 { width: 32px; }
+
+/* Shared slider controls for shadow/glow */
+.sh-grp { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 0 24px; }
+.sh-row { display: flex; gap: 2px; align-items: center; }
+.sh-row label { font-size: 13px; color: #fff; min-width: 52px; text-transform: uppercase; flex-shrink: 0; }
+.sh-row input[type="range"] { flex: 1; }
+.sh-row .sv { font-size: 14px; color: #FFD700; width: 42px; text-align: center; font-variant-numeric: tabular-nums; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,215,0,0.12); border-radius: 4px; padding: 0 4px; height: 22px; box-sizing: border-box; -moz-appearance: textfield; }
+.sh-row .sv::-webkit-outer-spin-button, .sh-row .sv::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sh-row .sv:focus { color: #fff; outline: 1px solid rgba(255,215,0,0.3); }
+.sh-row input[type="color"] { margin-right: 8px; }
+
+button { padding: 5px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; transition: all 0.15s; }
+button:active { transform: scale(0.96); }
+.btn-gold { background: rgba(255,215,0,0.08); color: #FFD700; border: 1px solid rgba(255,215,0,0.1) !important; }
+.btn-gold:hover { background: rgba(255,215,0,0.14); }
+
+/* Preview boxes */
+.pbox-wrap { position: relative; width: 100%; max-width: 640px; padding-top: 28px; }
+.pbox-wrap .plbl { position: absolute; top: 8px; left: 10px; font-size: 17px; font-weight: 800; color: rgba(255,215,0,0.25); letter-spacing: 2px; text-transform: uppercase; z-index: 3; pointer-events: none; }
+.pbox { width: 100%; border-radius: 8px; border: 1px solid rgba(255,215,0,0.06); background: rgba(255,255,255,0.07); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.pbox-card { min-height: 100px; padding: 24px; }
+.pbox-text { min-height: 80px; padding: 24px; }
+.pbox-icon { min-height: 80px; padding: 24px; display: flex; align-items: center; justify-content: center; }
+.ptext { font-weight: 700; text-align: center; }
+.picon { display: flex; align-items: center; justify-content: center; }
+
+/* Output */
+.output-wrap { position: relative; }
+.output-box { background: rgba(255,255,255,0.07); border-radius: 5px; padding: 10px; border: 1px solid rgba(255,215,0,0.12); min-height: 248px; }
+.output-box pre { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #f0f0f0; white-space: pre-wrap; word-break: break-all; line-height: 1.4; }
+.copy-icon-btn { position: absolute; top: 4px; right: 4px; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.12); border-radius: 4px; cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.copy-icon-btn svg { width: 16px; height: 16px; display: block; }
+.copy-icon-btn:hover { background: rgba(255,215,0,0.2); }
+
+textarea { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,215,0,0.12); border-radius: 5px; padding: 8px; color: #f0f0f0; font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: vertical; outline: none; line-height: 1.4; }
+textarea:focus { border-color: rgba(255,215,0,0.15); }
+.tip { font-size: 13px; color: rgba(255,255,255,0.2); }
+
+.saved-list { display: flex; flex-direction: column; gap: 2px; max-height: 120px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,215,0,0.2) rgba(255,255,255,0.03); }
+.saved-list::-webkit-scrollbar { width: 4px; }
+.saved-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 2px; }
+.saved-list::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.2); border-radius: 2px; }
+.saved-item { display: flex; align-items: center; gap: 4px; padding: 3px 6px; background: rgba(255,215,0,0.015); border-radius: 4px; border: 1px solid rgba(255,215,0,0.03); cursor: pointer; }
+.saved-item:hover { border-color: rgba(255,215,0,0.1); }
+.saved-toggle { cursor: pointer; background: rgba(255,215,0,0.03); border: 1px solid rgba(255,215,0,0.06); border-radius: 5px; padding: 5px 12px; text-align: center; color: rgba(255,215,0,0.4); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; width: 100%; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-box { background: #0D0D0D; border: 1px solid rgba(255,215,0,0.12); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; min-width: 320px; }
+.modal-swatch { width: 100%; height: 40px; border-radius: 6px; border: 1px solid rgba(255,215,0,0.06); }
+.modal-form { display: flex; flex-direction: column; gap: 6px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-title { text-align: center; color: #FFD700; font-size: 15px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.saved-toggle:hover { background: rgba(255,215,0,0.06); color: #FFD700; }
+.saved-item .sw { width: 20px; height: 20px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.03); flex-shrink: 0; }
+.saved-item .nm { flex: 1; font-size: 14px; color: rgba(255,255,255,0.35); text-align: right; padding-right: 5px; }
+.saved-item .dx { cursor: pointer; color: rgba(255,255,255,0.1); font-size: 14px; }
+.saved-item .dx:hover { color: #ff4444; }
+</style>
+</head>
+<body>
+
+<!-- ===== LEFT: CONTROLS ===== -->
+<div class="left">
+      <h2 data-lang="title">漸層渲染器</h2>
+      <div class="tabs" id="mainTabs">
+        <div class="tab active" data-tab="card">CARD</div>
+        <div class="tab" data-tab="text">TEXT</div>
+        <div class="tab" data-tab="icon">ICON</div>
+      </div>
+    
+      <!-- ===== CARD TAB ===== -->
+      <div class="tab-page" id="page-card">
+        <div class="group">
+          <span class="lbl" data-lang="cardGrad">卡片漸層</span>
+          <input type="text" id="cardName" value="Card BG">
+          <div class="row">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="type">類型</span>
+              <select id="cardType"><option value="linear">linear</option><option value="radial">radial</option></select>
+            </div>
+            <button class="btn-gold" id="saveBtn" style="width:100%;align-self:flex-end" data-lang="addStyle">Add Style</button>
+          </div>
+        </div>
+        <div class="group" style="background:rgba(255,255,255,0.07)">
+          <span class="lbl" data-lang="applyGrad">套用漸層</span>
+          <select id="cardGradRef"></select>
+          <div class="saved-toggle" id="cardSavedToggle" data-lang="savedToggle">已儲存漸層樣式 ▸</div>
+          <div class="saved-list" id="cardSavedList" style="display:none"></div>
+          <span class="lbl" data-lang="stops">色標</span>
+          <div class="gbar" id="cardBar"><div class="gbar-fill" id="cardBarFill"></div></div>
+          <div class="smarks" id="cardSmarks"></div>
+          <div class="sel-stop">
+            <div class="sr">
+              <input type="color" id="cardSelCol"><input type="text" class="hx" id="cardSelHex"><input type="number" class="ps" id="cardSelPos" min="0" max="100" step="1">
+              <span class="del" id="cardDelStop">×</span>
+            </div>
+            <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="cardSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="cardSelAlpV" min="0" max="100" step="1" value="100"></div>
+            <div class="sl"><label data-lang="angle">角度</label><input type="range" id="cardAngle" min="0" max="360" value="135"><input type="number" class="sv" id="cardAngleV" min="0" max="360" step="1" value="135"></div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ===== TEXT TAB ===== -->
+      <div class="tab-page" id="page-text" style="display:none">
+        <div class="group">
+          <span class="lbl" data-lang="textContent">文字內容</span>
+          <textarea id="txtContent" rows="3" style="font-weight:700;font-size:17px;height:84px;resize:none">GRADIENT</textarea>
+          <div class="row">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="fontSize">字體大小</span>
+              <input type="number" id="txtSize" value="48" min="8" max="200">
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="color">顏色</span>
+              <div class="row" style="gap:6px">
+                <input type="color" id="txtColor" value="#ffffff" style="width:26px;height:26px;cursor:pointer;background:none;padding:0">
+                <input type="text" id="txtColorHex" value="#ffffff" style="width:80px">
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="font">字體</span>
+              <select id="txtFont">
+                <option value="Inter">Inter</option><option value="'Rajdhani'" selected>Rajdhani</option>
+                <option value="Arial">Arial</option><option value="Georgia">Georgia</option>
+                <option value="'Times New Roman'">Times New Roman</option>
+                <option value="'Courier New'">Courier New</option><option value="Impact">Impact</option>
+              </select>
+            </div>
+          </div>
+        </div>
+    
+        <div class="group" style="background:rgba(255,255,255,0.07)">
+          <div class="row">
+            <input type="checkbox" id="txtGradEnabled" checked>
+            <span class="lbl" style="flex:1" data-lang="textGrad">文字漸層</span>
+          </div>
+          <div id="txtGradControls" style="display:flex;flex-direction:column;gap:10px">
+            <input type="text" id="txtGradName" value="Text Fill">
+            <div class="row">
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <span class="lbl" data-lang="type">類型</span>
+                <select id="txtGradType"><option value="linear">linear</option><option value="radial">radial</option></select>
+              </div>
+            </div>
+            <span class="lbl" data-lang="applyGrad">套用漸層</span>
+            <select id="txtGradRef"></select>
+            <div class="saved-toggle" id="txtSavedToggle" data-lang="savedToggle">已儲存漸層樣式 ▸</div>
+            <div class="saved-list" id="txtSavedList" style="display:none"></div>
+            <span class="lbl" data-lang="stops">色標</span>
+            <div class="gbar" id="txtBar"><div class="gbar-fill" id="txtBarFill"></div></div>
+            <div class="smarks" id="txtSmarks"></div>
+            <div class="sel-stop" id="txtSelStop">
+              <div class="sr">
+                <input type="color" id="txtSelCol"><input type="text" class="hx" id="txtSelHex"><input type="number" class="ps" id="txtSelPos" min="0" max="100" step="1">
+                <span class="del" id="txtDelStop">×</span>
+              </div>
+              <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="txtSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="txtSelAlpV" min="0" max="100" step="1" value="100"></div>
+              <div class="sl"><label data-lang="angle">角度</label><input type="range" id="txtGradAngle" min="0" max="360" value="90"><input type="number" class="sv" id="txtAngleV" min="0" max="360" step="1" value="90"></div>
+            </div>
+          </div>
+        </div>
+    
+        <div class="group" style="margin-top:24px;background:rgba(255,255,255,0.07)">
+          <div class="row">
+            <input type="checkbox" id="txtShadowEnabled">
+            <span class="lbl" style="flex:1" data-lang="shadow">陰影</span>
+          </div>
+          <div class="sh-grp" id="txtShadowControls">
+            <div class="sh-row">
+              <label style="width:auto;margin-right:4px" data-lang="color">顏色</label>
+              <input type="color" id="shColor" value="#000000" style="width:26px;height:26px;cursor:pointer;background:none;padding:0">
+              <input type="text" id="shColorHex" value="#000000" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,215,0,0.12);border-radius:5px;padding:5px 8px;color:#f0f0f0;outline:none">
+            </div>
+            <div class="sh-row"><label data-lang="shAngle">角度</label><input type="range" id="shAngle" min="0" max="360" value="135"><input type="number" class="sv" id="shAngleV" min="0" max="360" step="1" value="135"></div>
+            <div class="sh-row"><label data-lang="distance">距離</label><input type="range" id="shDist" min="0" max="50" value="3"><input type="number" class="sv" id="shDistV" min="0" max="50" step="1" value="3"></div>
+            <div class="sh-row"><label data-lang="shSize">尺寸</label><input type="range" id="shSize" min="0" max="50" value="5"><input type="number" class="sv" id="shSizeV" min="0" max="50" step="1" value="5"></div>
+            <div class="sh-row"><label data-lang="shSpread">傳播</label><input type="range" id="shSpread" min="0" max="100" value="0"><input type="number" class="sv" id="shSpreadV" min="0" max="100" step="1" value="0"></div>
+            <div class="sh-row"><label data-lang="shOpacity">不透明度</label><input type="range" id="shOpacity" min="0" max="100" value="60"><input type="number" class="sv" id="shOpacityV" min="0" max="100" step="1" value="60"></div>
+          </div>
+        </div>
+    
+        <div class="group" style="margin-top:24px;background:rgba(255,255,255,0.07)">
+          <div class="row">
+            <input type="checkbox" id="txtGlowEnabled">
+            <span class="lbl" style="flex:1" data-lang="glow">Glow</span>
+          </div>
+          <div class="sh-grp" id="txtGlowControls">
+            <div class="sh-row">
+              <label style="width:auto;margin-right:4px" data-lang="color">顏色</label>
+              <input type="color" id="glColor" value="#FFD700" style="width:26px;height:26px;cursor:pointer;background:none;padding:0">
+              <input type="text" id="glColorHex" value="#FFD700" style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,215,0,0.12);border-radius:5px;padding:5px 8px;color:#f0f0f0;outline:none">
+            </div>
+            <div class="sh-row"><label data-lang="glSize">尺寸</label><input type="range" id="glSize" min="0" max="50" value="8"><input type="number" class="sv" id="glSizeV" min="0" max="50" step="1" value="8"></div>
+            <div class="sh-row"><label data-lang="glSpread">傳播</label><input type="range" id="glSpread" min="0" max="100" value="0"><input type="number" class="sv" id="glSpreadV" min="0" max="100" step="1" value="0"></div>
+            <div class="sh-row"><label data-lang="glOpacity">不透明度</label><input type="range" id="glOpacity" min="0" max="100" value="40"><input type="number" class="sv" id="glOpacityV" min="0" max="100" step="1" value="40"></div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ===== ICON TAB ===== -->
+      <div class="tab-page" id="page-icon" style="display:none">
+        <div class="group">
+          <div class="row">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="builtinIcon">內建圖示</span>
+              <select id="iconSelect">
+                <option value="star">Star</option><option value="diamond">Diamond</option><option value="crown">Crown</option>
+                <option value="fire">Fire</option><option value="lightning">Lightning</option><option value="coin">Coin</option>
+                <option value="heart">Heart</option><option value="target">Target</option><option value="trophy">Trophy</option><option value="rocket">Rocket</option>
+              </select>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="custom">自訂</span>
+              <button class="btn-gold" id="iconCustomBtn" style="width:100%;text-transform:uppercase;letter-spacing:1px;font-size:11px;align-self:flex-end" data-lang="customPreview">自定義預覽</button>
+            </div>
+          </div>
+          <input type="file" id="iconUpload" accept="image/*" style="display:none">
+          </div>
+          <div class="row">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="size">大小</span>
+              <input type="number" id="iconSize" value="64" min="16" max="300">
+            </div>
+          </div>
+        </div>
+        <div class="group" style="margin-top:-2px">
+          <span class="lbl" data-lang="iconGrad">圖示漸層</span>
+          <input type="text" id="iconGradName" value="Icon Fill">
+          <div class="row">
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <span class="lbl" data-lang="type">類型</span>
+              <select id="iconGradType"><option value="linear">linear</option><option value="radial">radial</option></select>
+            </div>
+          </div>
+          <span class="lbl" data-lang="applyGrad">套用漸層</span>
+          <select id="iconGradRef"></select>
+          <div class="saved-toggle" id="iconSavedToggle" data-lang="savedToggle">已儲存漸層樣式 ▸</div>
+          <div class="saved-list" id="iconSavedList" style="display:none"></div>
+          <span class="lbl" data-lang="stops">色標</span>
+          <div class="gbar" id="iconBar"><div class="gbar-fill" id="iconBarFill"></div></div>
+          <div class="smarks" id="iconSmarks"></div>
+          <div class="sel-stop" id="iconSelStop">
+            <div class="sr">
+              <input type="color" id="iconSelCol"><input type="text" class="hx" id="iconSelHex"><input type="number" class="ps" id="iconSelPos" min="0" max="100" step="1">
+              <span class="del" id="iconDelStop">×</span>
+            </div>
+            <div class="sl"><label data-lang="opacity">不透明度</label><input type="range" id="iconSelAlp" min="0" max="100" value="100"><input type="number" class="sv" id="iconSelAlpV" min="0" max="100" step="1" value="100"></div>
+            <div class="sl"><label data-lang="angle">角度</label><input type="range" id="iconGradAngle" min="0" max="360" value="45"><input type="number" class="sv" id="iconAngleV" min="0" max="360" step="1" value="45"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- ===== CENTER: PREVIEW ===== -->
+<div class="center">
+  <select class="lang-select" id="langSelect"><option value="en">EN</option><option value="zh">中文</option></select>
+  <div class="pbox-wrap"><span class="plbl">Card</span><div class="pbox pbox-card" id="previewCard"><div style="width:100%;height:100%;position:absolute;inset:0;border-radius:8px;z-index:1" id="cardBgFill"></div></div></div>
+  <div class="pbox-wrap"><span class="plbl">Text</span><div class="pbox pbox-text" id="previewText"><div class="ptext" id="pText" style="z-index:2;position:relative"></div></div></div>
+  <div class="pbox-wrap"><span class="plbl">Icon</span><div class="pbox pbox-icon" id="previewIcon"><div class="picon" id="pIcon" style="z-index:2;position:relative"></div></div></div>
+</div>
+
+<!-- ===== RIGHT: OUTPUT & LOAD ===== -->
+<div class="right">
+  <h2 data-lang="output">輸出</h2>
+  <div class="output-wrap">
+    <div class="output-box"><pre id="outputCode">Copy output here</pre></div>
+    <span class="copy-icon-btn" id="copyBtn" title="Copy format"><svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"><rect x="9" y="2" width="13" height="16" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+  </div>
+
+  <h2 style="margin-top:8px" data-lang="import">載入</h2>
+  <span class="tip" data-lang="importTip">Paste format and press Import</span>
+  <textarea id="importInput" rows="12" placeholder="Paste format and press Import"></textarea>
+  <button class="btn-gold" id="importBtn" data-lang="importBtn">Import</button>
+</div>
+
+<!-- Save Modal -->
+<div class="modal-overlay" id="saveModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" data-lang="saveModalTitle">新增漸層樣式</div>
+    <div class="modal-swatch" id="modalSwatch"></div>
+    <div class="modal-form">
+      <span class="lbl" style="color:#FFD700" data-lang="name">名稱</span>
+      <input type="text" id="modalName" value="gradient_001">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-gold" id="modalConfirm" style="background:rgba(255,215,0,0.12);color:#FFD700;border:1px solid rgba(255,215,0,0.15)" data-lang="confirm">新增</button>
+      <button class="btn-gold" id="modalCancel" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.06)" data-lang="cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'gradient_tool_saves';
+
+const gradients = {
+  card: { name: 'Card BG', type: 'linear', angle: 135, stops: [{ color: '#0A001A', alpha: 1, pos: 0 }, { color: '#FFD700', alpha: 1, pos: 100 }] },
+  text: { name: 'Text Fill', type: 'linear', angle: 90, stops: [{ color: '#FFD700', alpha: 1, pos: 0 }, { color: '#FF8C00', alpha: 1, pos: 100 }] },
+  icon: { name: 'Icon Fill', type: 'linear', angle: 45, stops: [{ color: '#FF4500', alpha: 1, pos: 0 }, { color: '#FFD700', alpha: 1, pos: 100 }] },
+};
+
+const txtState = {
+  content: 'GRADIENT', size: 48, font: "'Rajdhani'", gradRef: '',
+  color: '#ffffff',
+  gradientEnabled: true,
+  shadowEnabled: false, shadow: { color: '#000000', angle: 135, dist: 3, size: 5, spread: 0, opacity: 60 },
+  glowEnabled: false, glow: { color: '#FFD700', size: 8, spread: 0, opacity: 40 }
+};
+const cardState = { gradRef: '' };
+const iconState = { type: 'builtin', value: 'star', size: 64, gradRef: '', customUrl: null };
+let activeGrad = 'card', selIdx = 0, dragIdx = -1, isDrag = false;
+
+function hex2rgb(h) { const c = h.replace('#',''); return { r: parseInt(c.substr(0,2),16), g: parseInt(c.substr(2,2),16), b: parseInt(c.substr(4,2),16) }; }
+function toCss(c, a) { return a >= 0.999 ? c : `rgba(${hex2rgb(c).r},${hex2rgb(c).g},${hex2rgb(c).b},${a})`; }
+function gradCss(g) { if (!g) return 'none'; const p = g.stops.map(s => `${toCss(s.color, s.alpha)} ${s.pos}%`); return g.type === 'linear' ? `linear-gradient(${g.angle}deg, ${p.join(', ')})` : `radial-gradient(circle, ${p.join(', ')})`; }
+function neighborColor(stops, pct) {
+  if (!stops || stops.length === 0) return '#888888';
+  let left = null, right = null;
+  for (const s of stops) {
+    if (s.pos <= pct && (!left || s.pos > left.pos)) left = s;
+    if (s.pos >= pct && (!right || s.pos < right.pos)) right = s;
+  }
+  return left ? left.color : (right ? right.color : '#888888');
+}
+function getGrad(which) {
+  if (which === 'card' || which === 'text' || which === 'icon') return gradients[which];
+  const saved = loadSaved().find(s => s.name === which);
+  return saved || null;
+}
+
+function renderRefSelects() {
+  const saved = loadSaved();
+  const L = LANG_DATA[currentLang];
+  ['cardGradRef', 'txtGradRef', 'iconGradRef'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    const self = id === 'cardGradRef' ? 'card' : id === 'txtGradRef' ? 'text' : 'icon';
+    const opts = [['', currentLang === 'en' ? 'Custom' : '自定義'], ['card', L.cardGrad]];
+    if (self === 'icon') opts.push(['text', L.textGrad]);
+    if (self === 'text') opts.push(['icon', L.iconGrad]);
+    const selfLbl = self === 'card' ? L.cardGrad : self === 'text' ? L.textGrad : L.iconGrad;
+    opts.push([self, currentLang === 'en' ? selfLbl + ' (self)' : selfLbl + '自身']);
+    let html = opts.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+    if (saved.length) { html += '<option disabled>' + (currentLang === 'en' ? '── Saved ──' : '── 已儲存 ──') + '</option>'; saved.forEach(s => html += `<option value="saved:${s.name}">${s.name}</option>`); }
+    el.innerHTML = html;
+    if (cur && [...el.options].some(o => o.value === cur)) el.value = cur;
+    else el.value = '';
+  });
+}
+
+function loadGradToUI() {
+  const p = activeGrad;
+  const g = gradients[p];
+  if (!g) return;
+  if (p === 'text') {
+    document.getElementById('txtGradEnabled').checked = txtState.gradientEnabled;
+    document.getElementById('txtGradControls').style.display = txtState.gradientEnabled ? 'flex' : 'none';
+    document.getElementById('txtColor').value = txtState.color;
+    document.getElementById('txtColorHex').value = txtState.color;
+  }
+  const nameId = p === 'card' ? 'cardName' : p + 'GradName';
+  const ne = document.getElementById(nameId); if (ne) ne.value = g.name;
+  const typeId = p === 'card' ? 'cardType' : p + 'GradType';
+  const te = document.getElementById(typeId); if (te) te.value = g.type;
+  const aeId = p === 'text' || p === 'icon' ? p + 'GradAngle' : p + 'Angle';
+  const ae = document.getElementById(aeId); if (ae) ae.value = g.angle;
+  const avId = p === 'card' ? 'cardAngleV' : (p === 'text' ? 'txtAngleV' : p + 'AngleV');
+  const av = document.getElementById(avId); if (av) av.value = g.angle;
+  const grEl = document.getElementById(p + 'GradRef');
+  if (grEl) {
+    if (p === 'card') grEl.value = cardState.gradRef;
+    else if (p === 'text') grEl.value = txtState.gradRef;
+    else if (p === 'icon') grEl.value = iconState.gradRef;
+  }
+  selIdx = 0;
+  if (p === 'text') { renderTextTab(); }
+  else { renderAll(p); }
+  // Restore shadow/glow UI
+  if (p === 'text') {
+    document.getElementById('txtShadowEnabled').checked = txtState.shadowEnabled;
+    document.getElementById('txtGlowEnabled').checked = txtState.glowEnabled;
+    const sh = txtState.shadow;
+    document.getElementById('shColor').value = sh.color;
+    document.getElementById('shColorHex').value = sh.color;
+    document.getElementById('shAngle').value = sh.angle; document.getElementById('shAngleV').value = sh.angle;
+    document.getElementById('shDist').value = sh.dist; document.getElementById('shDistV').value = sh.dist;
+    document.getElementById('shSize').value = sh.size; document.getElementById('shSizeV').value = sh.size;
+    document.getElementById('shSpread').value = sh.spread; document.getElementById('shSpreadV').value = sh.spread;
+    document.getElementById('shOpacity').value = sh.opacity; document.getElementById('shOpacityV').value = sh.opacity;
+    const gl = txtState.glow;
+    document.getElementById('glColor').value = gl.color;
+    document.getElementById('glColorHex').value = gl.color;
+    document.getElementById('glSize').value = gl.size; document.getElementById('glSizeV').value = gl.size;
+    document.getElementById('glSpread').value = gl.spread; document.getElementById('glSpreadV').value = gl.spread;
+    document.getElementById('glOpacity').value = gl.opacity; document.getElementById('glOpacityV').value = gl.opacity;
+  }
+}
+
+function bindGradEvents(p) {
+  const refresh = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const clone = el.cloneNode(true);
+    el.parentNode.replaceChild(clone, el);
+    return clone;
+  };
+
+  const nameEl = refresh(p + 'Name');
+  if (nameEl) nameEl.addEventListener('input', function() { const g = getGrad(p); if (!g) return; g.name = this.value; updateAll(); });
+
+  const typeEl = refresh(p + 'Type');
+  if (typeEl) typeEl.addEventListener('change', function() { const g = getGrad(p); if (!g) return; g.type = this.value; updatePreviews(); updateOutput(); });
+
+  const angleId = p === 'text' || p === 'icon' ? p + 'GradAngle' : p + 'Angle';
+  const angleEl = refresh(angleId);
+  if (angleEl) angleEl.addEventListener('input', function() {
+    const g = getGrad(p); if (!g) return; g.angle = +this.value;
+    const av = document.getElementById(p + 'AngleV'); if (av) av.value = this.value;
+    updatePreviews(); updateOutput();
+  });
+  const angleNEl = refresh(p + 'AngleV');
+  if (angleNEl) angleNEl.addEventListener('input', function() {
+    const v = Math.max(0, Math.min(360, +this.value || 0));
+    const g = getGrad(p); if (!g) return; g.angle = v;
+    const r = document.getElementById(angleId); if (r) r.value = v;
+    updatePreviews(); updateOutput();
+  });
+
+  const bar = refresh(p + 'Bar');
+  if (bar) bar.addEventListener('click', (e) => {
+    isDrag = false; const g = getGrad(p); if (!g) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const newStop = { color: neighborColor(g.stops, pct), alpha: 1, pos: pct };
+    g.stops.push(newStop);
+    g.stops.sort((a, b) => a.pos - b.pos);
+    selIdx = g.stops.indexOf(newStop);
+    renderAll(p);
+  });
+
+  const smarksEl = refresh(p + 'Smarks');
+  if (smarksEl) smarksEl.addEventListener('click', (e) => {
+    if (e.target.closest('.smark')) return;
+    const g = getGrad(p); if (!g) return;
+    const be = document.getElementById(p + 'Bar'); if (!be) return;
+    const rect = be.getBoundingClientRect();
+    const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const newStop = { color: neighborColor(g.stops, pct), alpha: 1, pos: pct };
+    g.stops.push(newStop);
+    g.stops.sort((a, b) => a.pos - b.pos);
+    selIdx = g.stops.indexOf(newStop);
+    renderAll(p);
+  });
+
+  const gradRefEl = refresh(p + 'GradRef');
+  if (gradRefEl) gradRefEl.addEventListener('change', function() {
+    const ref = this.value;
+    if (ref && ref !== p) {
+      let src;
+      if (ref.startsWith('saved:')) { const n = ref.replace('saved:',''); src = loadSaved().find(x => x.name === n); }
+      else if (ref === 'card' || ref === 'text' || ref === 'icon') { src = gradients[ref]; }
+      if (src) { const g = getGrad(p); if (g) { g.type = src.type; g.angle = src.angle; g.stops = JSON.parse(JSON.stringify(src.stops)); g.name = src.name; } }
+    }
+    if (p === 'card') cardState.gradRef = ''; else if (p === 'icon') iconState.gradRef = '';
+    this.value = ''; loadGradToUI(); updateOutput();
+  });
+
+  const delBtn = refresh(p + 'DelStop');
+  if (delBtn) delBtn.addEventListener('click', () => { const g = getGrad(p); if (!g || g.stops.length <= 2) return; g.stops.splice(selIdx, 1); selIdx = Math.min(selIdx, g.stops.length - 1); renderAll(p); });
+
+  const colEl = refresh(p + 'SelCol');
+  if (colEl) colEl.addEventListener('input', function() { const g = getGrad(p); if (!g || !g.stops[selIdx]) return; g.stops[selIdx].color = this.value; const hx = document.getElementById(p + 'SelHex'); if (hx) hx.value = this.value; renderAll(p); });
+
+  const hexEl = refresh(p + 'SelHex');
+  if (hexEl) hexEl.addEventListener('input', function() { const g = getGrad(p); if (!g || !g.stops[selIdx]) return; g.stops[selIdx].color = this.value; if (/^#[0-9a-f]{6}$/i.test(this.value)) { const cl = document.getElementById(p + 'SelCol'); if (cl) cl.value = this.value; } renderAll(p); });
+
+  const posEl = refresh(p + 'SelPos');
+  if (posEl) posEl.addEventListener('input', function() { const g = getGrad(p); if (!g || !g.stops[selIdx]) return; g.stops[selIdx].pos = Math.max(0, Math.min(100, +this.value || 0)); renderAll(p); });
+
+  const alpEl = refresh(p + 'SelAlp');
+  if (alpEl) alpEl.addEventListener('input', function() { const g = getGrad(p); if (!g || !g.stops[selIdx]) return; g.stops[selIdx].alpha = +(this.value / 100).toFixed(2); const n = document.getElementById(p + 'SelAlpV'); if (n) n.value = this.value; renderAll(p); });
+  const alpNEl = refresh(p + 'SelAlpV');
+  if (alpNEl) alpNEl.addEventListener('input', function() { const v = Math.max(0, Math.min(100, +this.value || 0)); const g = getGrad(p); if (!g || !g.stops[selIdx]) return; g.stops[selIdx].alpha = +(v / 100).toFixed(2); const r = document.getElementById(p + 'SelAlp'); if (r) r.value = v; renderAll(p); });
+  const togg = document.getElementById(p + 'SavedToggle');
+  if (togg) togg.onclick = toggleSaved;
+}
+
+['card', 'icon'].forEach(p => bindGradEvents(p));
+
+function renderTextTab() {
+  const gr = gradients.text;
+  if (!gr) return;
+  const fill = document.getElementById('txtBarFill');
+  if (fill) fill.style.background = gr.type === 'linear' ? `linear-gradient(90deg,${gr.stops.map(s => `${s.color} ${s.pos}%`).join(',')})` : `radial-gradient(circle,${gr.stops.map(s => `${s.color} ${s.pos}%`).join(',')})`;
+  const sc = document.getElementById('txtSmarks');
+  const bar = document.getElementById('txtBar');
+  if (sc && bar) {
+    sc.innerHTML = '';
+    const bw = bar.offsetWidth || 300;
+    gr.stops.forEach((s, i) => {
+      const m = document.createElement('div');
+      m.className = 'smark' + (i === selIdx ? ' active' : '');
+      m.dataset.idx = i; m.style.left = (s.pos / 100 * bw) + 'px';
+      m.innerHTML = '<div class="arr"></div><div class="ln"></div>';
+      m.addEventListener('mousedown', function(e) {
+        e.preventDefault(); dragIdx = i; selIdx = i; isDrag = true;
+        renderTextTab();
+        const be = document.getElementById('txtBar');
+        const bw2 = be ? be.offsetWidth : 300;
+        const onMove = function(ev) {
+          const rb = be.getBoundingClientRect();
+          const p = Math.max(0, Math.min(100, Math.round(((ev.clientX - rb.left) / rb.width) * 100)));
+          gr.stops[dragIdx].pos = p;
+          gr.stops.sort((a, b) => a.pos - b.pos);
+          selIdx = gr.stops.findIndex(st => st.pos === p);
+          renderTextTab();
+        };
+        const onUp = function() { isDrag = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+        document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+      });
+      sc.appendChild(m);
+    });
+  }
+  const s = gr.stops[selIdx] || gr.stops[0];
+  if (s) {
+    const cel = document.getElementById('txtSelCol'); if (cel) cel.value = s.color;
+    const hel = document.getElementById('txtSelHex'); if (hel) hel.value = s.color;
+    const pel = document.getElementById('txtSelPos'); if (pel) pel.value = s.pos;
+    const a = Math.round(s.alpha * 100);
+    const ael = document.getElementById('txtSelAlp'); if (ael) ael.value = a;
+    const av = document.getElementById('txtSelAlpV'); if (av) av.value = a;
+    const an = document.getElementById('txtGradAngle'); if (an) an.value = gr.angle;
+    const anv = document.getElementById('txtAngleV'); if (anv) anv.value = gr.angle;
+  }
+  updatePreviews();
+  updateOutput();
+}
+
+function renderStops(which) {
+  const g = getGrad(which); if (!g) return;
+  const c = document.getElementById(which + 'Smarks'); if (!c) return; c.innerHTML = '';
+  const bar = document.getElementById(which + 'Bar'); if (!bar) return;
+  const bw = bar.offsetWidth || bar.parentElement.offsetWidth || 300;
+  g.stops.forEach((s, i) => {
+    const m = document.createElement('div'); m.className = 'smark' + (i === selIdx ? ' active' : '');
+    m.dataset.idx = i; m.style.left = (s.pos / 100 * bw) + 'px';
+    m.innerHTML = `<div class="arr"></div><div class="ln"></div>`;
+    m.addEventListener('mousedown', (e) => {
+      e.preventDefault(); dragIdx = i; selIdx = i; isDrag = true; renderAll(which); startDrag(which, e);
+    });
+    c.appendChild(m);
+  });
+}
+
+function renderSelPanel(which) {
+  const g = getGrad(which); if (!g) return;
+  const s = g.stops[selIdx] || g.stops[0]; if (!s) return;
+  const ce = document.getElementById(which + 'SelCol'); if (ce) ce.value = s.color;
+  const hx = document.getElementById(which + 'SelHex'); if (hx) hx.value = s.color;
+  const pe = document.getElementById(which + 'SelPos'); if (pe) pe.value = s.pos;
+  const a = Math.round(s.alpha * 100);
+  const al = document.getElementById(which + 'SelAlp'); if (al) al.value = a;
+  const av = document.getElementById(which + 'SelAlpV'); if (av) av.value = a;
+  const anId = which === 'text' || which === 'icon' ? which + 'GradAngle' : which + 'Angle';
+  const an = document.getElementById(anId); if (an) an.value = g.angle;
+  const anv = document.getElementById(which + 'AngleV'); if (anv) anv.value = g.angle;
+}
+
+function renderAll(which) {
+  const g = getGrad(which); if (!g) return;
+  const fill = document.getElementById(which + 'BarFill');
+  if (fill) fill.style.background = g.type === 'linear' ? `linear-gradient(90deg, ${g.stops.map(s => `${toCss(s.color, s.alpha)} ${s.pos}%`).join(', ')})` : gradCss(g);
+  renderStops(which);
+  renderSelPanel(which);
+  updatePreviews();
+  updateOutput();
+}
+
+function startDrag(which, e) {
+  const bar = document.getElementById(which + 'Bar'); if (!bar) return;
+  const rect = bar.getBoundingClientRect(); const g = getGrad(which);
+  const onMove = (ev) => {
+    const pct = Math.max(0, Math.min(100, Math.round(((ev.clientX - rect.left) / rect.width) * 100)));
+    g.stops[dragIdx].pos = pct; if (selIdx !== dragIdx) selIdx = dragIdx; renderAll(which);
+  };
+  const onUp = () => { isDrag = false; dragIdx = -1; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); onMove(e);
+}
+
+// --- TEXT content/color/font events ---
+document.getElementById('txtContent').addEventListener('input', function() { txtState.content = this.value; updatePreviews(); });
+document.getElementById('txtSize').addEventListener('input', function() { txtState.size = +this.value; updatePreviews(); });
+document.getElementById('txtColor').addEventListener('input', function() { txtState.color = this.value; document.getElementById('txtColorHex').value = this.value; updatePreviews(); });
+document.getElementById('txtColorHex').addEventListener('input', function() { const v = this.value; if (/^#[0-9a-f]{6}$/i.test(v)) { txtState.color = v; document.getElementById('txtColor').value = v; updatePreviews(); } });
+document.getElementById('txtFont').addEventListener('change', function() { txtState.font = this.value; updatePreviews(); });
+
+document.getElementById('txtBar').addEventListener('click', function(e) {
+  isDrag = false; const gr = gradients.text; if (!gr) return;
+  const r = this.getBoundingClientRect();
+  const pct = Math.round(((e.clientX - r.left) / r.width) * 100);
+  const newStop = { color: neighborColor(gr.stops, pct), alpha: 1, pos: pct };
+  gr.stops.push(newStop);
+  gr.stops.sort((a, b) => a.pos - b.pos);
+  selIdx = gr.stops.indexOf(newStop);
+  renderTextTab();
+});
+document.getElementById('txtSmarks').addEventListener('click', function(e) {
+  if (e.target.closest('.smark')) return;
+  const gr = gradients.text; if (!gr) return;
+  const be = document.getElementById('txtBar'); if (!be) return;
+  const r = be.getBoundingClientRect();
+  const pct = Math.round(((e.clientX - r.left) / r.width) * 100);
+  const newStop = { color: neighborColor(gr.stops, pct), alpha: 1, pos: pct };
+  gr.stops.push(newStop);
+  gr.stops.sort((a, b) => a.pos - b.pos);
+  selIdx = gr.stops.indexOf(newStop);
+  renderTextTab();
+});
+document.getElementById('txtGradRef').addEventListener('change', function() {
+  const ref = this.value;
+  if (ref && ref !== 'text') {
+    let src;
+    if (ref.startsWith('saved:')) { const n = ref.replace('saved:',''); src = loadSaved().find(x => x.name === n); }
+    else if (ref === 'card' || ref === 'icon') { src = gradients[ref]; }
+    if (src) { const g = gradients.text; g.type = src.type; g.angle = src.angle; g.stops = JSON.parse(JSON.stringify(src.stops)); g.name = src.name; }
+  }
+  txtState.gradRef = ''; this.value = ''; loadGradToUI();
+});
+document.getElementById('txtDelStop').addEventListener('click', function() {
+  const gr = gradients.text; if (!gr || gr.stops.length <= 2) return;
+  gr.stops.splice(selIdx, 1); selIdx = Math.min(selIdx, gr.stops.length - 1);
+  renderTextTab();
+});
+document.getElementById('txtSelCol').addEventListener('input', function() {
+  const gr = gradients.text; if (!gr || !gr.stops[selIdx]) return;
+  gr.stops[selIdx].color = this.value;
+  const hx = document.getElementById('txtSelHex'); if (hx) hx.value = this.value;
+  renderTextTab();
+});
+document.getElementById('txtSelHex').addEventListener('input', function() {
+  const gr = gradients.text; if (!gr || !gr.stops[selIdx]) return;
+  gr.stops[selIdx].color = this.value;
+  if (/^#[0-9a-f]{6}$/i.test(this.value)) { const cl = document.getElementById('txtSelCol'); if (cl) cl.value = this.value; }
+  renderTextTab();
+});
+document.getElementById('txtSelPos').addEventListener('input', function() {
+  const gr = gradients.text; if (!gr || !gr.stops[selIdx]) return;
+  gr.stops[selIdx].pos = Math.max(0, Math.min(100, +this.value || 0));
+  renderTextTab();
+});
+document.getElementById('txtSelAlp').addEventListener('input', function() {
+  const gr = gradients.text; if (!gr || !gr.stops[selIdx]) return;
+  gr.stops[selIdx].alpha = +(this.value / 100).toFixed(2);
+  const n = document.getElementById('txtSelAlpV'); if (n) n.value = this.value;
+  renderTextTab();
+});
+document.getElementById('txtSelAlpV').addEventListener('input', function() {
+  const v = Math.max(0, Math.min(100, +this.value || 0));
+  const gr = gradients.text; if (!gr || !gr.stops[selIdx]) return;
+  gr.stops[selIdx].alpha = +(v / 100).toFixed(2);
+  const r = document.getElementById('txtSelAlp'); if (r) r.value = v;
+  renderTextTab();
+});
+document.getElementById('txtGradName').addEventListener('input', function() { gradients.text.name = this.value; updateOutput(); });
+document.getElementById('txtGradType').addEventListener('change', function() { gradients.text.type = this.value; updatePreviews(); updateOutput(); });
+document.getElementById('txtGradAngle').addEventListener('input', function() {
+  gradients.text.angle = +this.value;
+  document.getElementById('txtAngleV').value = this.value;
+  updatePreviews(); updateOutput();
+});
+document.getElementById('txtAngleV').addEventListener('input', function() {
+  const v = Math.max(0, Math.min(360, +this.value || 0));
+  gradients.text.angle = v;
+  document.getElementById('txtGradAngle').value = v;
+  updatePreviews(); updateOutput();
+});
+
+// Gradient enabled checkbox
+document.getElementById('txtGradEnabled').addEventListener('change', function() {
+  txtState.gradientEnabled = this.checked;
+  document.getElementById('txtGradControls').style.display = this.checked ? 'flex' : 'none';
+  updatePreviews(); updateOutput();
+});
+
+// Text tab saved toggle
+document.getElementById('txtSavedToggle').onclick = function() {
+  savedExpanded = !savedExpanded;
+  var arrow = savedExpanded ? '▾' : '▸';
+  document.querySelectorAll('.saved-toggle').forEach(function(el) { el.textContent = LANG_DATA[currentLang].savedToggle.replace('▸', arrow); });
+  var l = document.getElementById('txtSavedList');
+  if (l) l.style.display = savedExpanded ? '' : 'none';
+  renderSaved();
+};
+
+// --- Shadow events ---
+document.getElementById('txtShadowEnabled').addEventListener('change', function() {
+  txtState.shadowEnabled = this.checked;
+  updatePreviews(); updateOutput();
+});
+function bindShRow(id, key, maxVal, isFloat) {
+  const range = document.getElementById(id);
+  const num = document.getElementById(id + 'V');
+  if (!range || !num) return;
+  range.addEventListener('input', function() {
+    txtState.shadow[key] = isFloat ? +this.value : +this.value;
+    if (num) num.value = this.value;
+    updatePreviews(); updateOutput();
+  });
+  num.addEventListener('input', function() {
+    const v = Math.max(0, Math.min(maxVal, +this.value || 0));
+    txtState.shadow[key] = v;
+    if (range) range.value = v;
+    updatePreviews(); updateOutput();
+  });
+  num.addEventListener('focus', function() { this.select(); });
+}
+bindShRow('shAngle', 'angle', 360, false);
+bindShRow('shDist', 'dist', 50, false);
+bindShRow('shSize', 'size', 50, false);
+bindShRow('shSpread', 'spread', 100, false);
+bindShRow('shOpacity', 'opacity', 100, false);
+
+document.getElementById('shColor').addEventListener('input', function() {
+  txtState.shadow.color = this.value;
+  document.getElementById('shColorHex').value = this.value;
+  updatePreviews(); updateOutput();
+});
+document.getElementById('shColorHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-f]{6}$/i.test(v)) { txtState.shadow.color = v; document.getElementById('shColor').value = v; updatePreviews(); updateOutput(); }
+});
+
+// --- Glow events ---
+document.getElementById('txtGlowEnabled').addEventListener('change', function() {
+  txtState.glowEnabled = this.checked;
+  updatePreviews(); updateOutput();
+});
+function bindGlRow(id, key, maxVal) {
+  const range = document.getElementById(id);
+  const num = document.getElementById(id + 'V');
+  if (!range || !num) return;
+  range.addEventListener('input', function() {
+    txtState.glow[key] = +this.value;
+    if (num) num.value = this.value;
+    updatePreviews(); updateOutput();
+  });
+  num.addEventListener('input', function() {
+    const v = Math.max(0, Math.min(maxVal, +this.value || 0));
+    txtState.glow[key] = v;
+    if (range) range.value = v;
+    updatePreviews(); updateOutput();
+  });
+  num.addEventListener('focus', function() { this.select(); });
+}
+bindGlRow('glSize', 'size', 50, false);
+bindGlRow('glSpread', 'spread', 100, false);
+bindGlRow('glOpacity', 'opacity', 100, false);
+
+document.getElementById('glColor').addEventListener('input', function() {
+  txtState.glow.color = this.value;
+  document.getElementById('glColorHex').value = this.value;
+  updatePreviews(); updateOutput();
+});
+document.getElementById('glColorHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-f]{6}$/i.test(v)) { txtState.glow.color = v; document.getElementById('glColor').value = v; updatePreviews(); updateOutput(); }
+});
+
+// --- ICON events ---
+document.getElementById('iconSelect').addEventListener('change', function() { iconState.type = 'builtin'; iconState.value = this.value; updatePreviews(); });
+document.getElementById('iconCustomBtn').addEventListener('click', function() { document.getElementById('iconUpload').click(); });
+document.getElementById('iconUpload').addEventListener('change', function(e) { if (e.target.files && e.target.files[0]) { const r = new FileReader(); r.onload = (ev) => { iconState.type = 'custom'; iconState.customUrl = ev.target.result; updatePreviews(); }; r.readAsDataURL(e.target.files[0]); } });
+document.getElementById('iconSize').addEventListener('input', function() { iconState.size = Math.max(16, Math.min(300, +this.value || 16)); updatePreviews(); });
+document.getElementById('iconSize').addEventListener('change', function() { iconState.size = Math.max(16, Math.min(300, +this.value || 16)); updatePreviews(); });
+document.getElementById('iconGradName').addEventListener('input', function() { gradients.icon.name = this.value; updateOutput(); });
+document.getElementById('iconGradType').addEventListener('change', function() { gradients.icon.type = this.value; updatePreviews(); updateOutput(); });
+document.getElementById('iconGradAngle').addEventListener('input', function() {
+  gradients.icon.angle = +this.value;
+  document.getElementById('iconAngleV').value = this.value;
+  updatePreviews(); updateOutput();
+});
+document.getElementById('iconAngleV').addEventListener('input', function() {
+  const v = Math.max(0, Math.min(360, +this.value || 0));
+  gradients.icon.angle = v;
+  document.getElementById('iconGradAngle').value = v;
+  updatePreviews(); updateOutput();
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.tab-page').forEach(p => p.style.display = 'none');
+    document.getElementById('page-' + this.dataset.tab).style.display = 'block';
+    activeGrad = this.dataset.tab;
+    if (activeGrad !== 'text') { bindGradEvents(activeGrad); }
+    loadGradToUI();
+    updateOutput();
+  });
+});
+
+const iconSvgs = {
+  star: '<svg viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  diamond: '<svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  crown: '<svg viewBox="-2 0 26 24"><path d="M2 19h20l-2-11-6 4-4-8-4 8-6-4-2 11z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  fire: '<svg viewBox="0 0 24 24"><path d="M12 22c4 0 6-3 6-6 0-4-3-8-6-10-3 2-6 6-6 10 0 3 2 6 6 6z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M12 22c-2 0-3-2-3-4 0-2 1.5-4 3-5 1.5 1 3 3 3 5 0 2-1 4-3 4z" fill="none" stroke="#000" stroke-width="2"/></svg>',
+  lightning: '<svg viewBox="0 0 24 24"><polygon points="13,2 4,14 12,14 11,22 20,10 12,10" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="#000" stroke-width="2"/></svg>',
+  heart: '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  target: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="#000" stroke-width="2"/><circle cx="12" cy="12" r="1" fill="#000"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M6 2h12v5a6 6 0 0 1-12 0V2z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M12 13v7" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M8 22h8" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+  rocket: '<svg viewBox="0 0 24 24"><path d="M12 2s-5 6-5 11a5 5 0 0 0 10 0c0-5-5-11-5-11z" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2" fill="none" stroke="#000" stroke-width="2"/><path d="M8 17l-3 5" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M16 17l3 5" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>',
+};
+
+function textShadowStr() {
+  if (!txtState.shadowEnabled) return '';
+  const sh = txtState.shadow;
+  const a = sh.opacity / 100;
+  const rad = sh.angle * Math.PI / 180;
+  const x = Math.round(Math.sin(rad) * sh.dist * 10) / 10;
+  const y = Math.round(-Math.cos(rad) * sh.dist * 10) / 10;
+  const spread = sh.spread ? ` ${sh.spread}px` : '';
+  return `${x}px ${y}px ${sh.size}px${spread} ${toCss(sh.color, a)}`;
+}
+
+function textGlowStr() {
+  if (!txtState.glowEnabled) return '';
+  const gl = txtState.glow;
+  const a = gl.opacity / 100;
+  const c = toCss(gl.color, a);
+  const s = gl.size;
+  const sp = gl.spread ? ` ${gl.spread}px` : '';
+  // Multi-layer glow
+  return `0 0 ${s*0.5}px${sp} ${c}, 0 0 ${s}px${sp} ${c}` + (s >= 8 ? `, 0 0 ${s*1.5}px${sp} ${c}` : '');
+}
+
+function updatePreviews() {
+  const cRef = cardState.gradRef;
+  const cg = (!cRef || cRef === 'card') ? gradients.card : getGrad(cRef);
+  document.getElementById('cardBgFill').style.background = gradCss(cg);
+
+  const tEl = document.getElementById('pText');
+  const tRef = txtState.gradRef;
+  const tGrad = (!tRef || tRef === 'text') ? gradients.text : getGrad(tRef);
+  tEl.textContent = txtState.content;
+  tEl.style.fontSize = txtState.size + 'px';
+  tEl.style.fontFamily = txtState.font;
+  tEl.style.fontWeight = txtState.font.includes('Rajdhani') ? 700 : 700;
+
+  if (txtState.gradientEnabled && tGrad) {
+    tEl.style.background = gradCss(tGrad);
+    tEl.style.webkitBackgroundClip = 'text'; tEl.style.backgroundClip = 'text';
+    tEl.style.webkitTextFillColor = 'transparent'; tEl.style.color = 'transparent';
+  } else {
+    tEl.style.background = 'none'; tEl.style.webkitBackgroundClip = 'unset'; tEl.style.backgroundClip = 'unset';
+    tEl.style.webkitTextFillColor = 'unset'; tEl.style.color = txtState.color;
+  }
+
+  // Shadow + Glow as text-shadow
+  const shadows = [];
+  if (txtState.shadowEnabled) shadows.push(textShadowStr());
+  if (txtState.glowEnabled) shadows.push(textGlowStr());
+  tEl.style.textShadow = shadows.length ? shadows.join(', ') : 'none';
+
+  // Clean up all other style overrides
+  tEl.style.textDecoration = 'none';
+
+  const iEl = document.getElementById('pIcon'); iEl.innerHTML = '';
+  const iRef = iconState.gradRef;
+  const iGrad = (!iRef || iRef === 'icon') ? gradients.icon : getGrad(iRef);
+  if (iconState.type === 'builtin') {
+    const size = iconState.size;
+    const svgKey = iconState.value || 'star';
+    const svg = iconSvgs[svgKey] || iconSvgs.star;
+    let html;
+    if (iGrad) {
+      const gid = 'ig' + Date.now();
+      let def;
+      if (iGrad.type === 'linear') {
+        def = `<linearGradient id="${gid}" gradientTransform="rotate(${iGrad.angle} 0.5 0.5)">`;
+      } else {
+        def = `<radialGradient id="${gid}">`;
+      }
+      def += iGrad.stops.map(s => `<stop offset="${s.pos}%" stop-color="${toCss(s.color, s.alpha)}"/>`).join('');
+      def += iGrad.type === 'linear' ? '</linearGradient>' : '</radialGradient>';
+      html = svg.replace('>', `><defs>${def}</defs>`).replace(/stroke="#000"/g, `stroke="url(#${gid})"`).replace(/fill="#000"/g, `fill="url(#${gid})"`);
+    } else {
+      html = svg.replace(/stroke="#000"/g, 'stroke="rgba(255,255,255,0.6)"').replace(/fill="#000"/g, 'fill="rgba(255,255,255,0.6)"');
+    }
+    iEl.innerHTML = html;
+    const svgEl = iEl.querySelector('svg');
+    if (svgEl) { svgEl.style.width = size + 'px'; svgEl.style.height = size + 'px'; svgEl.style.display = 'block'; }
+  } else if (iconState.customUrl) {
+    const img = document.createElement('img'); img.src = iconState.customUrl;
+    img.style.width = iconState.size + 'px'; img.style.height = iconState.size + 'px'; img.style.objectFit = 'contain';
+    iEl.appendChild(img);
+  }
+}
+
+function updateOutput() {
+  const s = (g) => { let o = ''; g.stops.forEach(st => o += `    - color: "${st.color}" at ${st.pos}%${st.alpha < 1 ? ` alpha: ${st.alpha}` : ''}\n`); return o; };
+  const p = activeGrad;
+  const g = gradients[p]; if (!g) { document.getElementById('outputCode').textContent = 'Copy output here'; return; }
+  let out = '';
+  if (p === 'card') {
+    out += `card:\n  name: "${g.name}"\n  type: ${g.type}`;
+    if (g.type === 'linear') out += `\n  angle: ${g.angle}`;
+    out += `\n  stops:\n${s(g)}`;
+  } else if (p === 'text') {
+    out += `text:\n  content: ${JSON.stringify(txtState.content)}\n  font: ${txtState.font}\n  size: ${txtState.size}\n  color: "${txtState.color}"\n  gradient:\n    enabled: ${txtState.gradientEnabled}\n`;
+    if (txtState.gradientEnabled) {
+      out += `    fill:\n      name: "${g.name}"\n      type: ${g.type}`;
+      if (g.type === 'linear') out += `\n      angle: ${g.angle}`;
+      out += `\n      stops:\n`;
+      g.stops.forEach(st => out += `      - color: "${st.color}" at ${st.pos}%${st.alpha < 1 ? ` alpha: ${st.alpha}` : ''}\n`);
+    }
+    if (txtState.shadowEnabled) {
+      const sh = txtState.shadow;
+      out += `  shadow:\n    enabled: true\n    color: "${sh.color}"\n    angle: ${sh.angle}\n    distance: ${sh.dist}\n    size: ${sh.size}\n    spread: ${sh.spread}\n    opacity: ${sh.opacity}\n`;
+    }
+    if (txtState.glowEnabled) {
+      const gl = txtState.glow;
+      out += `  glow:\n    enabled: true\n    color: "${gl.color}"\n    size: ${gl.size}\n    spread: ${gl.spread}\n    opacity: ${gl.opacity}\n`;
+    }
+  } else if (p === 'icon') {
+    out += `icon:\n  type: ${iconState.type}\n  value: ${iconState.type === 'custom' ? 'upload' : iconState.value}\n  size: ${iconState.size}\n  gradient: ${iconState.gradRef || 'none'}\n`;
+    if (!iconState.gradRef || iconState.gradRef === 'icon') {
+      out += `  fill:\n    name: "${g.name}"\n    type: ${g.type}`;
+      if (g.type === 'linear') out += `\n    angle: ${g.angle}`;
+      out += `\n    stops:\n${s(g)}`;
+    }
+  }
+  document.getElementById('outputCode').textContent = out;
+}
+function updateAll() { updatePreviews(); updateOutput(); }
+function updateCurrentTab() { if (activeGrad === 'text') renderTextTab(); else renderAll(activeGrad); }
+
+function loadSaved() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } }
+function saveSaved(l) { localStorage.setItem(LS_KEY, JSON.stringify(l)); }
+function renderSaved() {
+  const list = loadSaved();
+  ['cardSavedList', 'txtSavedList', 'iconSavedList'].forEach(tid => {
+    const c = document.getElementById(tid); if (!c) return; c.innerHTML = '';
+    if (!list.length) { c.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,0.1);padding:2px 0">' + LANG_DATA[currentLang].emptySaved + '</div>'; return; }
+    list.forEach((item, i) => {
+      const d = document.createElement('div'); d.className = 'saved-item';
+      const css = item.type === 'linear' ? `linear-gradient(${item.angle}deg,${item.stops.map(s => `${s.color} ${s.pos}%`).join(',')})` : `radial-gradient(circle,${item.stops.map(s => `${s.color} ${s.pos}%`).join(',')})`;
+      d.innerHTML = `<div class="sw" style="background:${css};width:80px;height:21px;flex-shrink:0"></div><div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:5px;overflow:hidden"><span class="nm" style="text-align:right">${item.name}</span><span class="dx" data-idx="${i}">×</span></div>`;
+      d.addEventListener('click', () => {
+        const gr = loadSaved()[i];
+        if (!gr) return;
+        if (activeGrad === 'card') { Object.assign(gradients.card, JSON.parse(JSON.stringify(gr))); }
+        else if (activeGrad === 'text') { Object.assign(gradients.text, JSON.parse(JSON.stringify(gr))); }
+        else if (activeGrad === 'icon') { Object.assign(gradients.icon, JSON.parse(JSON.stringify(gr))); }
+        loadGradToUI();
+      });
+      d.querySelector('.dx').addEventListener('click', (e) => { e.stopPropagation(); const l = loadSaved(); l.splice(+e.target.dataset.idx,1); saveSaved(l); renderSaved(); renderRefSelects(); });
+      c.appendChild(d);
+    });
+  });
+  renderRefSelects();
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const modal = document.getElementById('saveModal');
+  const swatch = document.getElementById('modalSwatch');
+  const nameInput = document.getElementById('modalName');
+  const g = gradients[activeGrad]; if (!g) return;
+  swatch.style.background = gradCss(g);
+  const list = loadSaved();
+  let num = 1;
+  while (list.some(x => x.name === 'gradient_' + String(num).padStart(3, '0'))) { num++; }
+  nameInput.value = 'gradient_' + String(num).padStart(3, '0');
+  modal.style.display = 'flex';
+});
+document.getElementById('modalConfirm').addEventListener('click', () => {
+  const name = document.getElementById('modalName').value.trim();
+  if (!name) return;
+  const list = loadSaved();
+  const g = gradients[activeGrad]; if (!g) return;
+  const entry = JSON.parse(JSON.stringify(g)); entry.name = name;
+  list.push(entry); saveSaved(list); renderSaved();
+  document.getElementById('saveModal').style.display = 'none';
+  const btn = document.getElementById('saveBtn'); btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = LANG_DATA[currentLang].addStyle, 1200);
+});
+document.getElementById('modalCancel').addEventListener('click', () => {
+  document.getElementById('saveModal').style.display = 'none';
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  const raw = document.getElementById('importInput').value; if (!raw.trim()) return;
+  try {
+    const lines = raw.split('\n').map(l => l.trim()); let sec = ''; let importFill = null;
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i];
+      if (l.startsWith('card:') || l.startsWith('text:') || l.startsWith('icon:')) { sec = l.replace(':','').trim(); continue; }
+      if (l.startsWith('fill:')) {
+        sec += '-fill';
+        if (sec === 'card-fill') gradients.card.stops = [];
+        else if (sec === 'text-fill') gradients.text.stops = [];
+        else if (sec === 'icon-fill') gradients.icon.stops = [];
+        importFill = sec;
+        continue;
+      }
+      if (l.startsWith('content:')) { txtState.content = JSON.parse(l.replace(/^content:\s*/, '').trim()); continue; }
+      if (l.startsWith('font:')) { txtState.font = l.replace('font:','').trim(); continue; }
+      if (l.startsWith('size:')) { const v = parseInt(l.replace('size:','')); if (sec.startsWith('text')) txtState.size = v; else if (sec.startsWith('icon')) iconState.size = v; continue; }
+      if (l.startsWith('gradient:')) { const v = l.replace('gradient:','').trim(); if (sec.startsWith('text')) txtState.gradRef = v === 'none' ? '' : v; else if (sec.startsWith('icon')) iconState.gradRef = v === 'none' ? '' : v; continue; }
+      if (l.startsWith('color:')) { const v = l.replace('color:','').trim().replace(/"/g,''); if (sec === 'text') txtState.color = v; continue; }
+      if (l.startsWith('enabled:')) { const v = l.replace('enabled:','').trim(); if (sec.endsWith('gradient')) txtState.gradientEnabled = v === 'true'; continue; }
+      if (l.startsWith('shadow:')) { sec = 'shadow'; continue; }
+      if (l.startsWith('glow:')) { sec = 'glow'; continue; }
+      if (sec === 'shadow') {
+        if (l.startsWith('enabled:')) txtState.shadowEnabled = l.replace('enabled:','').trim() === 'true';
+        else if (l.startsWith('color:')) txtState.shadow.color = l.replace('color:','').trim().replace(/"/g,'');
+        else if (l.startsWith('angle:')) txtState.shadow.angle = +l.replace('angle:','');
+        else if (l.startsWith('distance:')) txtState.shadow.dist = +l.replace('distance:','');
+        else if (l.startsWith('size:')) { if (sec === 'shadow') txtState.shadow.size = +l.replace('size:',''); else if (sec === 'glow') txtState.glow.size = +l.replace('size:',''); }
+        else if (l.startsWith('spread:')) { if (sec === 'shadow') txtState.shadow.spread = +l.replace('spread:',''); else if (sec === 'glow') txtState.glow.spread = +l.replace('spread:',''); }
+        else if (l.startsWith('opacity:')) { if (sec === 'shadow') txtState.shadow.opacity = +l.replace('opacity:',''); else if (sec === 'glow') txtState.glow.opacity = +l.replace('opacity:',''); }
+        continue;
+      }
+      if (sec === 'glow') {
+        if (l.startsWith('enabled:')) txtState.glowEnabled = l.replace('enabled:','').trim() === 'true';
+        else if (l.startsWith('color:')) txtState.glow.color = l.replace('color:','').trim().replace(/"/g,'');
+        else if (l.startsWith('size:')) txtState.glow.size = +l.replace('size:','');
+        else if (l.startsWith('spread:')) txtState.glow.spread = +l.replace('spread:','');
+        else if (l.startsWith('opacity:')) txtState.glow.opacity = +l.replace('opacity:','');
+        continue;
+      }
+      if (l.startsWith('name:')) { const n = l.replace(/name:\s*"([^"]*)"/,'$1'); if (sec === 'card') gradients.card.name = n; else if (sec === 'text-fill') gradients.text.name = n; else if (sec === 'icon-fill') gradients.icon.name = n; continue; }
+      if (l.startsWith('type:')) { const t = l.replace('type:','').trim(); if (sec === 'card') gradients.card.type = t; else if (sec === 'text-fill') gradients.text.type = t; else if (sec === 'icon-fill') gradients.icon.type = t; if (sec === 'icon') iconState.type = t === 'upload' ? 'custom' : 'builtin'; continue; }
+      if (l.startsWith('value:')) { const v = l.replace('value:','').trim(); if (sec === 'icon' && iconState.type === 'builtin') iconState.value = v; continue; }
+      if (l.startsWith('angle:')) { const a = parseInt(l.replace('angle:','')) || 0; if (sec === 'card') gradients.card.angle = a; else if (sec === 'text-fill') gradients.text.angle = a; else if (sec === 'icon-fill') gradients.icon.angle = a; continue; }
+      if (l.startsWith('- color:')) {
+        const cm = l.match(/color:\s*"([^"]+)"/), pm = l.match(/at\s+(\d+)%/), am = l.match(/alpha:\s*([\d.]+)/);
+        if (cm && pm) { const st = { color: cm[1], pos: Math.max(0,Math.min(100,parseInt(pm[1])||0)), alpha: am ? Math.max(0,Math.min(1,parseFloat(am[1])||1)) : 1 };
+          if (sec === 'card') gradients.card.stops.push(st); else if (sec === 'text-fill') gradients.text.stops.push(st); else if (sec === 'icon-fill') gradients.icon.stops.push(st);
+        }
+      }
+    }
+    if (importFill) {
+      const srcKey = importFill === 'card-fill' ? 'card' : importFill === 'text-fill' ? 'text' : 'icon';
+      const src = gradients[srcKey];
+      const dst = gradients[activeGrad];
+      if (src && dst && srcKey !== activeGrad) { dst.type = src.type; dst.angle = src.angle; dst.stops = JSON.parse(JSON.stringify(src.stops)); dst.name = src.name; }
+    }
+    loadGradToUI(); updateAll(); renderRefSelects();
+    document.getElementById('txtGradRef').value = txtState.gradRef || '';
+    document.getElementById('iconGradRef').value = iconState.gradRef || '';
+    document.getElementById('importInput').value = '';
+    const btn = document.getElementById('importBtn'); btn.textContent = '✓ Imported'; setTimeout(() => btn.textContent = LANG_DATA[currentLang].importBtn, 1200);
+  } catch(e) { alert('Parse failed: '+e.message); }
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('outputCode').textContent).then(() => {
+    const btn = document.getElementById('copyBtn'); btn.innerHTML = '✓'; setTimeout(() => btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"><rect x="9" y="2" width="13" height="16" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>', 1500);
+  });
+});
+
+let savedExpanded = false;
+function toggleSaved() {
+  savedExpanded = !savedExpanded;
+  const arrow = savedExpanded ? '▾' : '▸';
+  document.querySelectorAll('.saved-toggle').forEach(el => {
+    el.textContent = LANG_DATA[currentLang].savedToggle.replace('▸', arrow);
+  });
+  const listId = activeGrad === 'text' ? 'txtSavedList' : activeGrad + 'SavedList';
+  const list = document.getElementById(listId);
+  if (list) list.style.display = savedExpanded ? '' : 'none';
+  renderSaved();
+};
+
+// --- LANGUAGE SYSTEM ---
+const LANG_DATA = {
+  en: {
+    title:'Gradient Renderer', cardGrad:'Card Gradient', type:'Type',
+    addStyle:'Add Style', applyGrad:'Apply Gradient', savedToggle:'Saved Styles',
+    stops:'Color Stops', opacity:'Opacity', angle:'Angle',
+    textContent:'Text Content', fontSize:'Font Size', color:'Color',
+    font:'Font', textGrad:'Text Gradient', shadow:'Shadow',
+    shAngle:'Angle', distance:'Distance', shSize:'Size',
+    shSpread:'Spread', shOpacity:'Opacity', glow:'Glow',
+    glSize:'Size', glSpread:'Spread', glOpacity:'Opacity',
+    builtinIcon:'Built-in Icons', custom:'Custom', customPreview:'Custom Preview',
+    size:'Size', iconGrad:'Icon Gradient', output:'Output',
+    import:'Import', outputPlaceholder:'Copy output here',
+    importTip:'Paste format and press Import', importBtn:'Import',
+    saveModalTitle:'Save Gradient Style', name:'Name',
+    confirm:'Save', cancel:'Cancel', emptySaved:'(none)',
+  },
+  zh: {
+    title:'漸層渲染器', cardGrad:'卡片漸層', type:'類型',
+    addStyle:'新增漸層樣式', applyGrad:'套用漸層', savedToggle:'已儲存漸層樣式 ▸',
+    stops:'色標', opacity:'不透明度', angle:'角度',
+    textContent:'文字內容', fontSize:'字體大小', color:'顏色',
+    font:'字體', textGrad:'文字漸層', shadow:'陰影',
+    shAngle:'角度', distance:'距離', shSize:'尺寸',
+    shSpread:'傳播', shOpacity:'不透明度', glow:'Glow',
+    glSize:'尺寸', glSpread:'傳播', glOpacity:'不透明度',
+    builtinIcon:'內建圖示', custom:'自訂', customPreview:'自定義預覽icon',
+    size:'大小', iconGrad:'圖示漸層', output:'輸出',
+    import:'載入', outputPlaceholder:'調整後複製這裡',
+    importTip:'貼上格式後按載入', importBtn:'載入',
+    saveModalTitle:'新增漸層樣式', name:'名稱',
+    confirm:'新增', cancel:'取消', emptySaved:'無',
+  }
+};
+let currentLang = 'en';
+
+function applyLang(lang) {
+  currentLang = lang; const t = LANG_DATA[lang];
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    const key = el.dataset.lang;
+    if (t[key] !== undefined) el.textContent = t[key];
+  });
+  document.title = t.title;
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-TW';
+  document.getElementById('copyBtn').title = lang === 'en' ? 'Copy' : '複製格式';
+  const inp = document.getElementById('importInput');
+  inp.placeholder = lang === 'en' ? 'Paste format and press Import' : '貼上格式後按「載入」';
+  document.querySelectorAll('.saved-toggle').forEach(el => {
+    const arrow = savedExpanded ? '▾' : '▸';
+    el.textContent = LANG_DATA[currentLang].savedToggle.replace('▸', arrow);
+  });
+  const oc = document.getElementById('outputCode');
+  if (oc && !oc.textContent.match(/^(card:|text:|icon:)/)) oc.textContent = t.outputPlaceholder;
+}
+
+document.getElementById('langSelect').addEventListener('change', function() {
+  applyLang(this.value);
+  renderSaved();
+});
+
+// Init
+try { applyLang('en'); } catch(e) {}
+try { loadGradToUI(); } catch(e) {}
+try { renderSaved(); } catch(e) {}
+try { updateAll(); } catch(e) {}
+try { updatePreviewHighlight(); } catch(e) {}
+try { applyLang('en'); } catch(e) {}
+</script>
+</body>
+</html>
