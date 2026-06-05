@@ -76,7 +76,7 @@ input[type="color"]::-webkit-color-swatch { border:none!important; border-radius
 
 button { padding:5px 12px; border:none; border-radius:5px; cursor:pointer; font-size:12px; font-weight:700; letter-spacing:0.5px; transition:all 0.15s; }
 button:active { transform:scale(0.96); }
-.btn-gold { background:rgba(255,215,0,0.08); color:#FFD700; border:1px solid rgba(255,215,0,0.1)!important; font-size:12px; font-weight:700; }
+.btn-gold { background:rgba(255,215,0,0.08); color:#FFD700; border:1px solid rgba(255,215,0,0.1)!important; font-size:12px; font-weight:700; border-radius:4px; padding:6px 14px; cursor:pointer; }
 .btn-gold:hover { background:rgba(255,215,0,0.14); }
 /* saved-toggle matches btn-gold exactly */
 .saved-toggle { cursor:pointer; background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.1); border-radius:5px; padding:5px 12px; text-align:center; color:#FFD700; font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; transition:all 0.15s; width:100%; display:block; }
@@ -125,29 +125,47 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 .modal-title { text-align:center; color:#FFD700; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
 
 /* Color picker */
-.cp-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; z-index:2000; }
-.cp-box { background:#0D0D0D; border:1px solid rgba(255,215,0,0.12); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:14px; min-width:380px; }
-.cp-body { display:flex; gap:16px; align-items:flex-start; }
-.cp-map-wrap { position:relative; width:200px; height:200px; border-radius:4px; overflow:hidden; cursor:crosshair; border:1px solid rgba(255,215,0,0.08); flex-shrink:0; }
+/* ---- Desktop Color Picker (Photoshop/SAI style) ---- */
+.cp-overlay { position:fixed; inset:0; background:transparent; display:flex; align-items:center; justify-content:center; z-index:2000; }
+.cp-box { background:#ECECEC; border:1px solid #8C8C8C; border-radius:0; padding:0; display:flex; flex-direction:column; min-width:460px; position:absolute; box-shadow:2px 2px 12px rgba(0,0,0,0.15); }
+.cp-title { display:flex; align-items:center; justify-content:center; padding:4px 12px; cursor:move; user-select:none; background:#D4D0C8; border-bottom:1px solid #8C8C8C; font:11px 'Segoe UI',sans-serif; color:#333; min-height:22px; }
+.cp-body { display:flex; gap:8px; align-items:flex-start; padding:10px; }
+/* Color field (S×B map) */
+.cp-map-wrap { position:relative; width:256px; height:256px; overflow:hidden; cursor:crosshair; border:1px solid #A0A0A0; flex-shrink:0; }
 .cp-map-wrap canvas { display:block; width:100%; height:100%; }
-.cp-crosshair { position:absolute; width:10px; height:10px; border:2px solid #fff; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 3px rgba(0,0,0,0.5); }
-.cp-bar-wrap { position:relative; width:18px; height:200px; border-radius:4px; overflow:hidden; cursor:pointer; flex-shrink:0; border:1px solid rgba(255,215,0,0.08); }
+.cp-crosshair { position:absolute; width:8px; height:8px; border:1.5px solid #fff; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 0 1px #666,0 0 2px rgba(0,0,0,0.3); }
+/* Hue/Sat/Bright bar */
+.cp-bar-wrap { position:relative; width:20px; height:256px; overflow:visible; cursor:pointer; flex-shrink:0; border:1px solid #A0A0A0; }
 .cp-bar-wrap canvas { display:block; width:100%; height:100%; }
-.cp-bar-indicator { position:absolute; left:-2px; right:-2px; height:4px; border:2px solid #fff; border-radius:2px; pointer-events:none; box-shadow:0 0 3px rgba(0,0,0,0.5); }
-.cp-preview { width:52px; height:52px; border-radius:6px; border:1px solid rgba(255,215,0,0.1); flex-shrink:0; background:#000; }
-.cp-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
-.cp-inputs .cpi { display:flex; flex-direction:column; gap:2px; }
-.cp-inputs .cpi label { font-size:10px; color:rgba(255,215,0,0.5); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
-.cp-inputs .cpi input { background:rgba(255,255,255,0.07); border:1px solid rgba(255,215,0,0.1); border-radius:4px; padding:3px 6px; color:#f0f0f0; font-size:12px; outline:none; width:100%; font-family:'JetBrains Mono',monospace; }
-.cp-inputs .cpi input:focus { border-color:rgba(255,215,0,0.3); }
-.cp-hex { grid-column:1/-1; }
-.cp-hex input { width:100%; }
-.cp-actions { display:flex; gap:8px; justify-content:flex-end; }
-.cp-mode { display:flex; gap:6px; margin-bottom:4px; }
-.cp-mode label { font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; text-transform:uppercase; font-weight:700; cursor:pointer; }
-.cp-mode label.active { color:#FFD700; }
-.color-swatch { width:26px; height:26px; min-width:26px; border-radius:4px; border:1px solid rgba(255,215,0,0.15); cursor:pointer; flex-shrink:0; transition:border-color 0.15s; }
-.color-swatch:hover { border-color:rgba(255,215,0,0.35); }
+.cp-bar-indicator { position:absolute; left:-6px; width:8px; height:8px; pointer-events:none; z-index:1; background:#333; clip-path:polygon(0 0,100% 50%,0 100%); }
+/* Right panel */
+.cp-right { display:flex; flex-direction:column; gap:6px; flex:1; }
+.cp-right-top { display:flex; gap:8px; align-items:flex-start; }
+.cp-preview { width:48px; height:48px; min-width:48px; border:1px solid #A0A0A0; background:#fff; }
+/* Mode radio-style labels */
+.cp-mode { display:flex; gap:4px; }
+.cp-mode label { font:11px/14px 'Segoe UI',sans-serif; color:#333; cursor:pointer; padding:1px 6px; border:1px solid #A0A0A0; background:#F0F0F0; }
+.cp-mode label.active { background:#D0D0D0; border-color:#7A7A7A; font-weight:600; }
+.cp-mode label:not(.active):hover { background:#E6E6E6; }
+/* Input grid */
+.cp-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:0; }
+.cp-inputs .cpi { display:flex; flex-direction:column; gap:1px; }
+.cp-inputs .cpi label { font:9px/12px 'Segoe UI',sans-serif; color:#555; text-transform:uppercase; font-weight:600; }
+.cp-inputs .cpi input { background:#fff; border:1px solid #A0A0A0; border-radius:0; padding:2px 4px; color:#222; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
+.cp-inputs .cpi input:focus { border-color:#0078D7; background:#FFF9E0; }
+/* HEX field */
+.cp-hex { display:flex; flex-direction:column; gap:1px; }
+.cp-hex label { font:9px/12px 'Segoe UI',sans-serif; color:#555; text-transform:uppercase; font-weight:600; }
+.cp-hex input { background:#fff; border:1px solid #A0A0A0; border-radius:0; padding:2px 4px; color:#222; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
+.cp-hex input:focus { border-color:#0078D7; background:#FFF9E0; }
+/* Actions row */
+.cp-actions { display:flex; gap:4px; justify-content:flex-end; padding:6px 10px; border-top:1px solid #C0C0C0; background:#D4D0C8; }
+.cp-actions button { font:11px/16px 'Segoe UI',sans-serif; padding:2px 16px; min-width:60px; height:21px; cursor:pointer; background:#F0F0F0; color:#222; border:1px solid #7A7A7A; border-radius:0; box-shadow:none; text-transform:none; letter-spacing:0; font-weight:400; }
+.cp-actions button:hover { background:#E6E6E6; }
+.cp-actions button:active { background:#D0D0D0; }
+/* Swatches outside picker stay unaffected */
+.color-swatch { width:26px; height:26px; min-width:26px; border:1px solid #A0A0A0; cursor:pointer; flex-shrink:0; }
+.color-swatch:hover { border-color:#666; }
 
 /* SVG filter for inner shadow 1 */
 #svgFilters { position:absolute; width:0; height:0; overflow:hidden; }
@@ -491,35 +509,40 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 
 <!-- Color picker modal -->
 <div class="cp-overlay" id="cpOverlay" style="display:none">
-  <div class="cp-box">
+  <div class="cp-box" id="cpBox">
+    <div class="cp-title" id="cpTitle">&#x25A0; Color Picker</div>
     <div class="cp-body">
       <div class="cp-map-wrap" id="cpMapWrap">
-        <canvas id="cpMapCanvas" width="200" height="200"></canvas>
+        <canvas id="cpMapCanvas" width="256" height="256"></canvas>
         <div class="cp-crosshair" id="cpCrosshair"></div>
       </div>
       <div class="cp-bar-wrap" id="cpBarWrap">
-        <canvas id="cpBarCanvas" width="18" height="200"></canvas>
+        <canvas id="cpBarCanvas" width="20" height="256"></canvas>
         <div class="cp-bar-indicator" id="cpBarIndicator"></div>
       </div>
-      <div class="cp-preview" id="cpPreview"></div>
-    </div>
-    <div class="cp-mode" id="cpMode">
-      <label data-mode="h">H</label>
-      <label data-mode="s">S</label>
-      <label data-mode="b">B</label>
-    </div>
-    <div class="cp-inputs">
-      <div class="cpi"><label>H</label><input type="number" id="cpH" min="0" max="360" step="1"></div>
-      <div class="cpi"><label>S</label><input type="number" id="cpS" min="0" max="100" step="1"></div>
-      <div class="cpi"><label>B</label><input type="number" id="cpB" min="0" max="100" step="1"></div>
-      <div class="cpi"><label>R</label><input type="number" id="cpR" min="0" max="255" step="1"></div>
-      <div class="cpi"><label>G</label><input type="number" id="cpG" min="0" max="255" step="1"></div>
-      <div class="cpi"><label>B</label><input type="number" id="cpBB" min="0" max="255" step="1"></div>
-      <div class="cpi cp-hex"><label>#</label><input type="text" id="cpHex" maxlength="7"></div>
+      <div class="cp-right">
+        <div class="cp-right-top">
+          <div class="cp-preview" id="cpPreview"></div>
+          <div class="cp-mode" id="cpMode">
+            <label data-mode="h">H</label>
+            <label data-mode="s">S</label>
+            <label data-mode="b">B</label>
+          </div>
+        </div>
+        <div class="cp-inputs">
+          <div class="cpi"><label>H</label><input type="number" id="cpH" min="0" max="360" step="1"></div>
+          <div class="cpi"><label>S</label><input type="number" id="cpS" min="0" max="100" step="1"></div>
+          <div class="cpi"><label>B</label><input type="number" id="cpB" min="0" max="100" step="1"></div>
+          <div class="cpi"><label>R</label><input type="number" id="cpR" min="0" max="255" step="1"></div>
+          <div class="cpi"><label>G</label><input type="number" id="cpG" min="0" max="255" step="1"></div>
+          <div class="cpi"><label>B</label><input type="number" id="cpBB" min="0" max="255" step="1"></div>
+        </div>
+        <div class="cp-hex"><label>#</label><input type="text" id="cpHex" maxlength="7"></div>
+      </div>
     </div>
     <div class="cp-actions">
-      <button class="btn-gold" id="cpOk">OK</button>
-      <button class="btn-gold" id="cpCancel" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.06)!important">Cancel</button>
+      <button id="cpOk">OK</button>
+      <button id="cpCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -1152,9 +1175,9 @@ function rgb2hsb(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.mi
 
 const cpCanvas=document.getElementById('cpMapCanvas'),cpBarCanvas=document.getElementById('cpBarCanvas');
 const cpCtx=cpCanvas.getContext('2d'),cpBarCtx=cpBarCanvas.getContext('2d');
-let cpState={h:0,s:100,b:100,mode:'h',target:null,savedColor:'#000000'};
+let cpState={h:0,s:100,b:100,mode:'b',target:null,savedColor:'#000000'};
 function cpRenderMap(){
-  const w=200,h=200,img=cpCtx.createImageData(w,h),d=img.data,st=cpState;
+  const w=cpCanvas.width,h=cpCanvas.height,img=cpCtx.createImageData(w,h),d=img.data,st=cpState;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     let hh=st.h,ss=st.s,bb=st.b;
     if(st.mode==='h'){ss=x/w*100;bb=(1-y/h)*100;}
@@ -1169,11 +1192,19 @@ function cpRenderMap(){
   ch.style.left=sx+'px';ch.style.top=sy+'px';
 }
 function cpRenderBar(){
-  const w=18,h=200,img=cpBarCtx.createImageData(w,h),d=img.data;
-  for(let y=0;y<h;y++){const[r,g,b]=hsb2rgb(y/h*360,100,100);for(let x=0;x<w;x++){const p=(y*w+x)*4;d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=255;}}
+  const w=cpBarCanvas.width,h=cpBarCanvas.height,img=cpBarCtx.createImageData(w,h),d=img.data,st=cpState;
+  for(let y=0;y<h;y++){
+    let r,g,b;
+    if(st.mode==='h'){[r,g,b]=hsb2rgb(y/h*360,100,100);}
+    else if(st.mode==='s'){[r,g,b]=hsb2rgb(st.h,(1-y/h)*100,st.b);}
+    else{[r,g,b]=hsb2rgb(st.h,st.s,(1-y/h)*100);}
+    for(let x=0;x<w;x++){const p=(y*w+x)*4;d[p]=r;d[p+1]=g;d[p+2]=b;d[p+3]=255;}
+  }
   cpBarCtx.putImageData(img,0,0);
   const ind=document.getElementById('cpBarIndicator');
-  ind.style.top=(cpState.h/360*h)+'px';
+  if(st.mode==='h')ind.style.top=(st.h/360*h-4)+'px';
+  else if(st.mode==='s')ind.style.top=((1-st.s/100)*h-4)+'px';
+  else ind.style.top=((1-st.b/100)*h-4)+'px';
 }
 function cpSyncInputs(){
   const[h,s,b]=[cpState.h,cpState.s,cpState.b];
@@ -1189,7 +1220,10 @@ function cpOpen(target,hex){
   cpState.savedColor=hex;cpState.target=target;
   const[r,g,b]=hex2rgb(hex);const[h,s,bv]=rgb2hsb(r,g,b);
   cpSetColor(h,s,bv);cpRenderBar();cpRenderMap();cpSyncInputs();
-  document.getElementById('cpOverlay').style.display='flex';
+  const ov=document.getElementById('cpOverlay'),box=document.getElementById('cpBox');
+  ov.style.display='block';
+  box.style.left=Math.max(0,(ov.clientWidth-box.offsetWidth)/2)+'px';
+  box.style.top=Math.max(0,(ov.clientHeight-box.offsetHeight)/2)+'px';
 }
 function cpApply(){
   if(cpState.target){
@@ -1202,18 +1236,33 @@ function cpApply(){
   document.getElementById('cpOverlay').style.display='none';
 }
 
+// Drag CP box
+let cpDrag={active:false,ox:0,oy:0,lx:0,ly:0};
+document.getElementById('cpTitle').addEventListener('mousedown',function(e){
+  const box=document.getElementById('cpBox');
+  cpDrag.active=true;cpDrag.ox=e.clientX;cpDrag.oy=e.clientY;
+  cpDrag.lx=box.offsetLeft||0;cpDrag.ly=box.offsetTop||0;
+});
+document.addEventListener('mousemove',function(e){
+  if(!cpDrag.active)return;
+  const box=document.getElementById('cpBox');
+  box.style.left=(cpDrag.lx+e.clientX-cpDrag.ox)+'px';
+  box.style.top=(cpDrag.ly+e.clientY-cpDrag.oy)+'px';
+});
+document.addEventListener('mouseup',function(){cpDrag.active=false;});
+
 // Canvas map events
 let cpDragging=false;
 cpCanvas.addEventListener('mousedown',function(e){cpDragging=true;cpMapPick(e);});
 document.addEventListener('mousemove',function(e){if(cpDragging)cpMapPick(e);});
 document.addEventListener('mouseup',()=>{cpDragging=false;});
 function cpMapPick(e){
-  const r=cpCanvas.getBoundingClientRect();
-  let x=(e.clientX-r.left)/r.width*200,y=(e.clientY-r.top)/r.height*200;
-  x=Math.max(0,Math.min(200,x));y=Math.max(0,Math.min(200,y));
-  if(cpState.mode==='h'){cpSetColor(cpState.h,x/200*100,(1-y/200)*100);}
-  else if(cpState.mode==='s'){cpSetColor(x/200*360,cpState.s,(1-y/200)*100);}
-  else{cpSetColor(x/200*360,(1-y/200)*100,cpState.b);}
+  const r=cpCanvas.getBoundingClientRect(),w=cpCanvas.width,h=cpCanvas.height;
+  let x=(e.clientX-r.left)/r.width*w,y=(e.clientY-r.top)/r.height*h;
+  x=Math.max(0,Math.min(w,x));y=Math.max(0,Math.min(h,y));
+  if(cpState.mode==='h'){cpSetColor(cpState.h,x/w*100,(1-y/h)*100);}
+  else if(cpState.mode==='s'){cpSetColor(x/w*360,cpState.s,(1-y/h)*100);}
+  else{cpSetColor(x/w*360,(1-y/h)*100,cpState.b);}
   cpRenderMap();cpSyncInputs();
 }
 // Bar events
@@ -1222,13 +1271,16 @@ document.addEventListener('mousemove',function(e){if(cpBarDragging)cpBarPick(e);
 document.addEventListener('mouseup',()=>{cpBarDragging=false;});
 let cpBarDragging=false;
 function cpBarPick(e){
-  const r=cpBarCanvas.getBoundingClientRect();
-  let y=(e.clientY-r.top)/r.height*200;y=Math.max(0,Math.min(200,y));
-  cpState.h=Math.round(y/200*360);cpRenderBar();cpRenderMap();cpSyncInputs();
+  const r=cpBarCanvas.getBoundingClientRect(),h=cpBarCanvas.height,st=cpState;
+  let y=(e.clientY-r.top)/r.height*h;y=Math.max(0,Math.min(h,y));
+  if(st.mode==='h')st.h=Math.round(y/h*360);
+  else if(st.mode==='s')st.s=Math.round((1-y/h)*100);
+  else st.b=Math.round((1-y/h)*100);
+  cpRenderBar();cpRenderMap();cpSyncInputs();
 }
 // Mode switch
 document.querySelectorAll('.cp-mode label').forEach(el=>{
-  el.addEventListener('click',function(){cpState.mode=this.dataset.mode;cpRenderMap();cpSyncInputs();});
+  el.addEventListener('click',function(){cpState.mode=this.dataset.mode;cpRenderBar();cpRenderMap();cpSyncInputs();});
 });
 // Input sync
 ['cpH','cpS','cpB'].forEach(id=>{
@@ -1255,6 +1307,12 @@ document.getElementById('cpOk').addEventListener('click',cpApply);
 document.getElementById('cpCancel').addEventListener('click',function(){
   if(cpState.target){cpState.target.value=cpState.savedColor;cpState.target.style.background=cpState.savedColor;}
   document.getElementById('cpOverlay').style.display='none';
+});
+document.getElementById('cpOverlay').addEventListener('mousedown',function(e){
+  if(e.target===this){
+    if(cpState.target){cpState.target.value=cpState.savedColor;cpState.target.style.background=cpState.savedColor;}
+    this.style.display='none';
+  }
 });
 
 // Replace native color inputs with swatches
