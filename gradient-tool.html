@@ -110,7 +110,10 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 .saved-list::-webkit-scrollbar { width:4px; }
 .saved-list::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); border-radius:2px; }
 .saved-list::-webkit-scrollbar-thumb { background:rgba(255,215,0,0.2); border-radius:2px; }
-.saved-item { width:30px; height:30px; border-radius:3px; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; }
+.saved-item { width:30px; height:30px; border-radius:3px; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; position:relative; }
+.saved-item .dx { position:absolute; top:-3px; right:-3px; width:14px; height:14px; background:rgba(0,0,0,0.6); border-radius:50%; color:#fff; font:10px/14px sans-serif; text-align:center; display:none; z-index:2; }
+.saved-item:hover .dx { display:block; }
+.saved-item .dx:hover { background:#ff4444; }
 .saved-item-fx { display:flex; align-items:center; gap:6px; padding:3px 6px; background:rgba(255,215,0,0.015); border-radius:4px; border:1px solid rgba(255,215,0,0.03); cursor:pointer; }
 .saved-item-fx:hover { border-color:rgba(255,215,0,0.1); }
 .saved-item-fx .nm { flex:1; font-size:12px; color:rgba(255,255,255,0.35); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -125,47 +128,47 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 .modal-title { text-align:center; color:#FFD700; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
 
 /* Color picker */
-/* ---- Desktop Color Picker (Photoshop/SAI style) ---- */
+/* ---- Desktop Color Picker (dark gray) ---- */
 .cp-overlay { position:fixed; inset:0; background:transparent; display:flex; align-items:center; justify-content:center; z-index:2000; }
-.cp-box { background:#ECECEC; border:1px solid #8C8C8C; border-radius:0; padding:0; display:flex; flex-direction:column; min-width:460px; position:absolute; box-shadow:2px 2px 12px rgba(0,0,0,0.15); }
-.cp-title { display:flex; align-items:center; justify-content:center; padding:4px 12px; cursor:move; user-select:none; background:#D4D0C8; border-bottom:1px solid #8C8C8C; font:11px 'Segoe UI',sans-serif; color:#333; min-height:22px; }
+.cp-box { background:#2D2D2D; border:1px solid #555; border-radius:8px; padding:0; display:flex; flex-direction:column; min-width:460px; position:absolute; box-shadow:0 4px 20px rgba(0,0,0,0.5); overflow:hidden; }
+.cp-title { display:flex; align-items:center; justify-content:center; padding:4px 12px; cursor:move; user-select:none; background:#3A3A3A; border-bottom:1px solid #555; font:11px 'Segoe UI',sans-serif; color:#BBB; min-height:22px; }
 .cp-body { display:flex; gap:8px; align-items:flex-start; padding:10px; }
 /* Color field (S×B map) */
-.cp-map-wrap { position:relative; width:256px; height:256px; overflow:hidden; cursor:crosshair; border:1px solid #A0A0A0; flex-shrink:0; }
+.cp-map-wrap { position:relative; width:256px; height:256px; overflow:hidden; cursor:crosshair; border:1px solid #666; flex-shrink:0; }
 .cp-map-wrap canvas { display:block; width:100%; height:100%; }
-.cp-crosshair { position:absolute; width:8px; height:8px; border:1.5px solid #fff; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 0 1px #666,0 0 2px rgba(0,0,0,0.3); }
+.cp-crosshair { position:absolute; width:8px; height:8px; border:1.5px solid #fff; border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 0 1px #444,0 0 3px rgba(0,0,0,0.5); }
 /* Hue/Sat/Bright bar */
-.cp-bar-wrap { position:relative; width:20px; height:256px; overflow:visible; cursor:pointer; flex-shrink:0; border:1px solid #A0A0A0; }
+.cp-bar-wrap { position:relative; width:20px; height:256px; overflow:visible; cursor:pointer; flex-shrink:0; border:1px solid #666; }
 .cp-bar-wrap canvas { display:block; width:100%; height:100%; }
-.cp-bar-indicator { position:absolute; left:-6px; width:8px; height:8px; pointer-events:none; z-index:1; background:#333; clip-path:polygon(0 0,100% 50%,0 100%); }
+.cp-bar-indicator { position:absolute; left:-6px; width:8px; height:8px; pointer-events:none; z-index:1; background:#CCC; clip-path:polygon(0 0,100% 50%,0 100%); }
 /* Right panel */
 .cp-right { display:flex; flex-direction:column; gap:6px; flex:1; }
 .cp-right-top { display:flex; gap:8px; align-items:flex-start; }
-.cp-preview { width:48px; height:48px; min-width:48px; border:1px solid #A0A0A0; background:#fff; }
+.cp-preview { width:48px; height:48px; min-width:48px; border:1px solid #666; background:#1A1A1A; }
 /* Mode radio-style labels */
 .cp-mode { display:flex; gap:4px; }
-.cp-mode label { font:11px/14px 'Segoe UI',sans-serif; color:#333; cursor:pointer; padding:1px 6px; border:1px solid #A0A0A0; background:#F0F0F0; }
-.cp-mode label.active { background:#D0D0D0; border-color:#7A7A7A; font-weight:600; }
-.cp-mode label:not(.active):hover { background:#E6E6E6; }
+.cp-mode label { font:11px/14px 'Segoe UI',sans-serif; color:#BBB; cursor:pointer; padding:1px 6px; border:1px solid #666; background:#3A3A3A; }
+.cp-mode label.active { background:#555; border-color:#888; font-weight:600; color:#FFF; }
+.cp-mode label:not(.active):hover { background:#444; }
 /* Input grid */
 .cp-inputs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:0; }
 .cp-inputs .cpi { display:flex; flex-direction:column; gap:1px; }
-.cp-inputs .cpi label { font:9px/12px 'Segoe UI',sans-serif; color:#555; text-transform:uppercase; font-weight:600; }
-.cp-inputs .cpi input { background:#fff; border:1px solid #A0A0A0; border-radius:0; padding:2px 4px; color:#222; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
-.cp-inputs .cpi input:focus { border-color:#0078D7; background:#FFF9E0; }
+.cp-inputs .cpi label { font:9px/12px 'Segoe UI',sans-serif; color:#888; text-transform:uppercase; font-weight:600; }
+.cp-inputs .cpi input { background:#3A3A3A; border:1px solid #666; border-radius:0; padding:2px 4px; color:#DDD; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
+.cp-inputs .cpi input:focus { border-color:#999; background:#444; }
 /* HEX field */
 .cp-hex { display:flex; flex-direction:column; gap:1px; }
-.cp-hex label { font:9px/12px 'Segoe UI',sans-serif; color:#555; text-transform:uppercase; font-weight:600; }
-.cp-hex input { background:#fff; border:1px solid #A0A0A0; border-radius:0; padding:2px 4px; color:#222; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
-.cp-hex input:focus { border-color:#0078D7; background:#FFF9E0; }
+.cp-hex label { font:9px/12px 'Segoe UI',sans-serif; color:#888; text-transform:uppercase; font-weight:600; }
+.cp-hex input { background:#3A3A3A; border:1px solid #666; border-radius:0; padding:2px 4px; color:#DDD; font:11px/16px 'Segoe UI',sans-serif; outline:none; width:100%; box-sizing:border-box; height:20px; }
+.cp-hex input:focus { border-color:#999; background:#444; }
 /* Actions row */
-.cp-actions { display:flex; gap:4px; justify-content:flex-end; padding:6px 10px; border-top:1px solid #C0C0C0; background:#D4D0C8; }
-.cp-actions button { font:11px/16px 'Segoe UI',sans-serif; padding:2px 16px; min-width:60px; height:21px; cursor:pointer; background:#F0F0F0; color:#222; border:1px solid #7A7A7A; border-radius:0; box-shadow:none; text-transform:none; letter-spacing:0; font-weight:400; }
-.cp-actions button:hover { background:#E6E6E6; }
-.cp-actions button:active { background:#D0D0D0; }
+.cp-actions { display:flex; gap:4px; justify-content:flex-end; padding:6px 10px; border-top:1px solid #555; background:#3A3A3A; }
+.cp-actions button { font:11px/16px 'Segoe UI',sans-serif; padding:2px 16px; min-width:60px; height:21px; cursor:pointer; background:#4A4A4A; color:#CCC; border:1px solid #666; border-radius:0; box-shadow:none; text-transform:none; letter-spacing:0; font-weight:400; }
+.cp-actions button:hover { background:#555; color:#FFF; }
+.cp-actions button:active { background:#666; }
 /* Swatches outside picker stay unaffected */
-.color-swatch { width:26px; height:26px; min-width:26px; border:1px solid #A0A0A0; cursor:pointer; flex-shrink:0; }
-.color-swatch:hover { border-color:#666; }
+.color-swatch { width:26px; height:26px; min-width:26px; border:1px solid #666; cursor:pointer; flex-shrink:0; }
+.color-swatch:hover { border-color:#999; }
 
 /* SVG filter for inner shadow 1 */
 #svgFilters { position:absolute; width:0; height:0; overflow:hidden; }
@@ -439,7 +442,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 <!-- ===== CENTER: PREVIEW ===== -->
 <div class="center">
   <div style="position:absolute;top:12px;right:12px;z-index:10;display:flex;align-items:center;gap:6px">
-    <span style="font-size:10px;color:rgba(255,215,0,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700" data-lang="langLabel">語言</span>
+    <span style="font-size:12px;color:rgba(255,215,0,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700" data-lang="langLabel">語言</span>
     <select class="lang-select" id="langSelect" style="position:static;width:auto;min-width:70px"><option value="en">EN</option><option value="zh">中文</option></select>
   </div>
   <div class="pbox-wrap">
@@ -462,6 +465,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
       <div class="picon" id="pIcon"></div>
     </div>
   </div>
+  <span style="position:absolute;bottom:6px;right:10px;font:10px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.25);letter-spacing:0.5px;pointer-events:none">v1.1.1</span>
 </div>
 
 <!-- ===== RIGHT ===== -->
@@ -702,13 +706,15 @@ function renderSaved(){
       const d=document.createElement('div');d.className='saved-item';
       const css=item.type==='linear'?`linear-gradient(${item.angle}deg,${item.stops.map(s=>`${s.color} ${s.pos}%`).join(',')})`:`radial-gradient(circle,${item.stops.map(s=>`${s.color} ${s.pos}%`).join(',')})`;
       d.style.background=css;d.title=item.name;
+      const dx=document.createElement('span');dx.className='dx';dx.textContent='×';
+      dx.addEventListener('click',(e)=>{e.stopPropagation();const l=loadSaved();l.splice(i,1);saveSaved(l);renderSaved();renderRefSelects();});
+      d.appendChild(dx);
       d.addEventListener('click',(e)=>{
         if(e.target.classList.contains('dx'))return;
         const gr=loadSaved()[i];if(!gr)return;
         Object.assign(gradients[activeGrad],JSON.parse(JSON.stringify(gr)));
         loadGradToUI();
       });
-      const dx=d.querySelector('.dx');
       c.appendChild(d);
     });
   });
@@ -1175,7 +1181,7 @@ function rgb2hsb(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.mi
 
 const cpCanvas=document.getElementById('cpMapCanvas'),cpBarCanvas=document.getElementById('cpBarCanvas');
 const cpCtx=cpCanvas.getContext('2d'),cpBarCtx=cpBarCanvas.getContext('2d');
-let cpState={h:0,s:100,b:100,mode:'b',target:null,savedColor:'#000000'};
+let cpState={h:0,s:100,b:100,mode:'h',target:null,savedColor:'#000000'};
 function cpRenderMap(){
   const w=cpCanvas.width,h=cpCanvas.height,img=cpCtx.createImageData(w,h),d=img.data,st=cpState;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
