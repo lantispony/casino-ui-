@@ -466,7 +466,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
       <div class="picon" id="pIcon"></div>
     </div>
   </div>
-  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.6</span>
+  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.7</span>
 </div>
 
 <!-- ===== RIGHT ===== -->
@@ -857,14 +857,15 @@ function bindGradEvents(p){
   rebind(typeId,function(){const g=getGrad(p);if(g){g.type=this.value;updatePreviews();updateOutput();}});
   const angleId=p==='card'?'cardAngle':(p==='text'?'txtGradAngle':p+'GradAngle');
   const angleVId=p==='text'?'txtAngleV':p+'AngleV';
-  rebind(angleId,function(){const g=getGrad(p);if(g){g.angle=+this.value;sv(angleVId,this.value);updatePreviews();updateOutput();}});
-  rebind(angleVId,function(){const v=Math.max(0,Math.min(360,+this.value||0));const g=getGrad(p);if(g){g.angle=v;sv(angleId,v);updatePreviews();updateOutput();}});
+  undoOnFocus(rebind(angleId,function(){const g=getGrad(p);if(g){g.angle=+this.value;sv(angleVId,this.value);updatePreviews();updateOutput();}}));
+  undoOnFocus(rebind(angleVId,function(){const v=Math.max(0,Math.min(360,+this.value||0));const g=getGrad(p);if(g){g.angle=v;sv(angleId,v);updatePreviews();updateOutput();}}));
   const spfx=p==='text'?'txt':p;
-  rebind(spfx+'SelCol',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;sv(spfx+'SelHex',this.value);renderAll(p);}});
-  rebind(spfx+'SelHex',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;if(/^#[0-9a-f]{6}$/i.test(this.value))sv(spfx+'SelCol',this.value);renderAll(p);}});
-  rebind(spfx+'SelPos',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].pos=Math.max(0,Math.min(100,+this.value||0));renderAll(p);}});
-  rebind(spfx+'SelAlp',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(this.value/100).toFixed(2);sv(spfx+'SelAlpV',this.value);renderAll(p);}});
-  rebind(spfx+'SelAlpV',function(){const v=Math.max(0,Math.min(100,+this.value||0));const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(v/100).toFixed(2);sv(spfx+'SelAlp',v);renderAll(p);}});
+  function undoOnFocus(el){if(el&&!el.dataset.undoBound){el.dataset.undoBound='1';el.addEventListener('focus',function(){pushUndo();},{once:true});}}
+  undoOnFocus(rebind(spfx+'SelCol',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;sv(spfx+'SelHex',this.value);renderAll(p);}}));
+  undoOnFocus(rebind(spfx+'SelHex',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].color=this.value;if(/^#[0-9a-f]{6}$/i.test(this.value))sv(spfx+'SelCol',this.value);renderAll(p);}}));
+  undoOnFocus(rebind(spfx+'SelPos',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].pos=Math.max(0,Math.min(100,+this.value||0));renderAll(p);}}));
+  undoOnFocus(rebind(spfx+'SelAlp',function(){const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(this.value/100).toFixed(2);sv(spfx+'SelAlpV',this.value);renderAll(p);}}));
+  undoOnFocus(rebind(spfx+'SelAlpV',function(){const v=Math.max(0,Math.min(100,+this.value||0));const g=getGrad(p);if(g&&g.stops[selIdx]){g.stops[selIdx].alpha=+(v/100).toFixed(2);sv(spfx+'SelAlp',v);renderAll(p);}}));
   const refId=p==='card'?'cardGradRef':(p==='text'?'txtGradRef':p+'GradRef');
   rebind(refId,function(){
     const ref=this.value;
