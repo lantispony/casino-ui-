@@ -47,13 +47,6 @@ export default function Footer() {
         <div style={{ color: '#444', fontSize: 12 }}>
           © 2026 MONARCH CASINO. UI Demo Only. All rights reserved.
         </div>
-        <div style={{ display: 'flex', gap: 16, fontSize: 18 }}>
-          {['💬', '🐦', '📷', '🎵', '💜'].map((s, i) => (
-            <span key={i} style={{ opacity: 0.4, cursor: 'pointer', transition: 'var(--transition)' }}>
-              {s}
-            </span>
-          ))}
-        </div>
       </div>
     </footer>
   );
