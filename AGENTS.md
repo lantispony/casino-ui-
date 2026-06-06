@@ -8,3 +8,7 @@
 ## Tab 停留
 - 切換 Card/Text/Icon 時自動儲存至 localStorage `gt_active_tab`
 - Init 時讀取並復原頁面
+
+## 語言停留
+- 切換語言時自動儲存至 localStorage `gt_lang`
+- Init 時讀取並復原
