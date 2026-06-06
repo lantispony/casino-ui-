@@ -482,7 +482,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
       <div class="picon" id="pIcon"></div>
     </div>
   </div>
-  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.15</span>
+  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.16</span>
 </div>
 
 <!-- ===== RIGHT ===== -->
@@ -923,7 +923,7 @@ document.getElementById('txtSize').addEventListener('input',function(){txtState.
 document.getElementById('txtColor').addEventListener('input',function(){txtState.color=this.value;sv('txtColorHex',this.value);updatePreviews();});
 document.getElementById('txtColorHex').addEventListener('input',function(){if(/^#[0-9a-f]{6}$/i.test(this.value)){txtState.color=this.value;sv('txtColor',this.value);updatePreviews();}});
 document.getElementById('txtFont').addEventListener('change',function(){txtState.font=this.value;updatePreviews();});
-document.getElementById('txtGradEnabled').addEventListener('change',function(){txtState.gradientEnabled=this.checked;document.getElementById('txtGradControls').style.display=this.checked?'flex':'none';updatePreviews();updateOutput();});
+document.getElementById('txtGradEnabled').addEventListener('change',function(){txtState.gradientEnabled=this.checked;updatePreviews();updateOutput();});
 // Note: fx groups (shadow/glow) are always visible regardless of gradient toggle
 
 // ---- FX slider binders ----
@@ -976,7 +976,6 @@ function loadGradToUI(){
   const p=activeGrad;const g=gradients[p];if(!g)return;
   if(p==='text'){
     document.getElementById('txtGradEnabled').checked=txtState.gradientEnabled;
-    document.getElementById('txtGradControls').style.display=txtState.gradientEnabled?'flex':'none';
     sv('txtColor',txtState.color);sv('txtColorHex',txtState.color);
     document.getElementById('txtShadowEnabled').checked=txtState.shadowEnabled;
     document.getElementById('txtInnerShadow2Enabled').checked=txtState.innerShadow2Enabled;
