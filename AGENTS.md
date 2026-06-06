@@ -22,3 +22,9 @@
   - 套用保存樣式
   - 編輯顏色/位置/透明度/角度等輸入欄位（focus 時 push 一次）
 - `undo()` 還原上一步，綁定 Ctrl+Z
+
+## 調色盤 Swatches 面板 (`v1.1.7`)
+- 32 組預設色票（黑/白/灰階/三原色/二次色/品牌金等）
+- 儲存於 localStorage `gt_cp_swatches`
+- 左鍵點擊套色、右鍵選單（Edit/Replace/Delete）
+- 右上角 × 按鈕快速刪除,「+ Add」按鈕新增目前顏色
