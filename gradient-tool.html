@@ -111,7 +111,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 .saved-list::-webkit-scrollbar { width:4px; }
 .saved-list::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); border-radius:2px; }
 .saved-list::-webkit-scrollbar-thumb { background:rgba(255,215,0,0.2); border-radius:2px; }
-.saved-item { width:30px; height:30px; border-radius:3px; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; position:relative; }
+.saved-item { width:30px; height:30px; cursor:pointer; border:none; position:relative; }
 .saved-item .dx { position:absolute; top:-3px; right:-3px; width:14px; height:14px; background:rgba(0,0,0,0.6); border-radius:50%; color:#fff; font:10px/14px sans-serif; text-align:center; display:none; z-index:2; }
 .saved-item:hover .dx { display:block; }
 .saved-item .dx:hover { background:#ff4444; }
@@ -466,7 +466,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
       <div class="picon" id="pIcon"></div>
     </div>
   </div>
-  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.5</span>
+  <span style="position:absolute;bottom:6px;right:10px;font:13px/1 'Segoe UI',sans-serif;color:rgba(255,215,0,0.5);letter-spacing:0.5px;pointer-events:none">v1.1.6</span>
 </div>
 
 <!-- ===== RIGHT ===== -->
@@ -577,6 +577,9 @@ const cardState = {gradRef:''};
 const iconState = {type:'builtin',value:'star',size:64,gradRef:'',customUrl:null};
 let activeGrad='card', selIdx=0, dragIdx=-1, isDrag=false;
 let fxModalTarget=null;
+let gradHistory=[], maxUndo=50;
+function pushUndo(){const g=gradients[activeGrad];if(!g)return;gradHistory.push(JSON.parse(JSON.stringify(g)));if(gradHistory.length>maxUndo)gradHistory.shift();}
+function undo(){if(!gradHistory.length)return;const s=gradHistory.pop();Object.assign(gradients[activeGrad],s);loadGradToUI();}
 
 function hex2rgb(h){const c=h.replace('#','');return{r:parseInt(c.substr(0,2),16),g:parseInt(c.substr(2,2),16),b:parseInt(c.substr(4,2),16)};}
 function toCss(c,a){if(a>=0.999)return c;const {r,g,b}=hex2rgb(c);return `rgba(${r},${g},${b},${a})`;}
@@ -720,7 +723,7 @@ function renderSaved(){
       d.addEventListener('click',(e)=>{
         if(e.target.classList.contains('dx'))return;
         const gr=loadSaved()[i];if(!gr)return;
-        Object.assign(gradients[activeGrad],JSON.parse(JSON.stringify(gr)));
+        pushUndo();Object.assign(gradients[activeGrad],JSON.parse(JSON.stringify(gr)));
         loadGradToUI();
       });
       c.appendChild(d);
@@ -815,7 +818,7 @@ function startDrag(which,e){
   const deleteThreshold=rect.bottom+18;
   const onMove=(ev)=>{
     if(ev.clientY>=deleteThreshold&&g.stops.length>2&&dragIdx>=0){
-      g.stops.splice(dragIdx,1);selIdx=Math.min(selIdx,g.stops.length-1);
+      pushUndo();g.stops.splice(dragIdx,1);selIdx=Math.min(selIdx,g.stops.length-1);
       isDrag=false;dragIdx=-1;renderAll(which);
       document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
       return;
@@ -830,7 +833,7 @@ function startDrag(which,e){
       renderAll(which);
     }
   };
-  const onUp=()=>{isDrag=false;dragIdx=-1;renderAll(which);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+  const onUp=()=>{if(isDrag&&dragIdx>=0){pushUndo();}isDrag=false;dragIdx=-1;renderAll(which);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
   document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);onMove(e);
 }
 
@@ -885,7 +888,7 @@ function bindGradEvents(p){
       const r=barEl.getBoundingClientRect();
       const pct=Math.round(((e.clientX-r.left)/r.width)*100);
       const ns={color:neighborColor(g.stops,pct),alpha:1,pos:pct};
-      g.stops.push(ns);g.stops.sort((a,b)=>a.pos-b.pos);
+      pushUndo();g.stops.push(ns);g.stops.sort((a,b)=>a.pos-b.pos);
       selIdx=g.stops.indexOf(ns);renderAll(p);
     });
   }
@@ -1344,6 +1347,8 @@ function cpInitSwatches(){
     inp.addEventListener('input',function(){sw.style.background=this.value;});
   });
 }
+
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}});
 
 // Init
 try{const savedLang=localStorage.getItem('gt_lang');if(savedLang==='en'||savedLang==='zh'){document.getElementById('langSelect').value=savedLang;applyLang(savedLang);}else applyLang('en');}catch{applyLang('en');}
