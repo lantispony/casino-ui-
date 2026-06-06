@@ -24,7 +24,7 @@ body { font-family: 'Inter','Noto Sans TC','Microsoft JhengHei','PingFang TC',-a
 .sec-lbl { font-size:11px; color:rgba(255,215,0,0.6); letter-spacing:2px; text-transform:uppercase; font-weight:700; }
 
 h2 { font-size:13px; color:#FFD700; letter-spacing:3px; text-transform:uppercase; font-weight:700; margin-bottom:2px; }
-h2[data-lang="title"] { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:20px; text-transform:capitalize; letter-spacing:1px; }
+h2[data-lang="title"] { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:30px; text-transform:capitalize; letter-spacing:1px; text-align:center; width:100%; margin-bottom:0; }
 .lbl { font-size:11px; color:rgba(255,255,255,0.55); letter-spacing:1.5px; text-transform:uppercase; font-weight:700; }
 
 .group { display:flex; flex-direction:column; gap:8px; background:rgba(255,215,0,0.015); border:1px solid rgba(255,215,0,0.05); border-radius:8px; padding:12px 14px; }
@@ -208,7 +208,6 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 
 <!-- ===== LEFT: CONTROLS ===== -->
 <div class="left">
-  <h2 data-lang="title">Renderer Reverse Prompt Generator</h2>
   <div class="tabs" id="mainTabs">
     <div class="tab active" data-tab="card">CARD</div>
     <div class="tab" data-tab="text">TEXT</div>
@@ -458,6 +457,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 
 <!-- ===== CENTER: PREVIEW ===== -->
 <div class="center">
+  <h2 data-lang="title">Renderer Reverse Prompt Generator</h2>
   <div style="position:absolute;top:12px;right:12px;z-index:10;display:flex;align-items:center;gap:6px">
     <span style="font-size:12px;color:rgba(255,215,0,0.5);letter-spacing:2px;text-transform:uppercase;font-weight:700" data-lang="langLabel">語言</span>
     <select class="lang-select" id="langSelect" style="position:static;width:auto;min-width:70px"><option value="en">EN</option><option value="zh">中文</option></select>
