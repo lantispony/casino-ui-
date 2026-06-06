@@ -18,6 +18,7 @@ import {
   Confetti, Diamond, Lightning, CurrencyDollar, Compass, Cards, DiceFive, Fish
 } from '@phosphor-icons/react';
 import { games, banners, userStats, missions } from '../data/games';
+import Silk from '../components/Silk';
 import WinAnimation from '../components/animations/WinAnimation';
 import CoinRain from '../components/animations/CoinRain';
 import Beams from '../components/animations/Beams';
@@ -156,7 +157,7 @@ export default function Lobby() {
             transition={{ duration: 0.6 }}
             style={{
               position: 'relative', zIndex: 10, height: isTiny ? 320 : 380, borderRadius: 24, overflow: 'hidden',
-              background: currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
+              background: currentBanner === 1 ? '#0A0A0A' : currentBanner === 0 ? '#0A0A0A' : banners[currentBanner].gradient,
               display: 'flex', alignItems: 'center', padding: '0 60px',
             }}
           >
@@ -167,6 +168,11 @@ export default function Lobby() {
                   lightColor="#ffcf57" speed={3.1}
                   noiseIntensity={0.25} scale={0.3} rotation={45} lightIntensity={3}
                 />
+              </div>
+            )}
+            {currentBanner === 1 && (
+              <div style={{ position: 'absolute', inset: 0 }}>
+                <Silk speed={5} scale={1} color="#b29a4b" noiseIntensity={0} rotation={0} />
               </div>
             )}
 
