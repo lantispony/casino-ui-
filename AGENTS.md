@@ -27,4 +27,5 @@
 - 32 組預設色票（黑/白/灰階/三原色/二次色/品牌金等）
 - 儲存於 localStorage `gt_cp_swatches`
 - 左鍵點擊套色、右鍵選單（Edit/Replace/Delete）
-- 右上角 × 按鈕快速刪除,「+ Add」按鈕新增目前顏色
+- 拖曳色票至框外即時刪除（無 × 按鈕）,「+ Add」按鈕新增目前顏色
+- 調色盤彈窗位置記憶（localStorage `gt_cp_box_pos`），拖曳/關閉時儲存，開啟時復原
