@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>漸層渲染器</title>
+<title>Renderer Reverse Prompt Generator</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter','Noto Sans TC','Microsoft JhengHei','PingFang TC',-apple-system,BlinkMacSystemFont,sans-serif; background:#0A0A0A; color:#eee; display:flex; height:100vh; user-select:none; }
@@ -192,7 +192,7 @@ textarea:focus { border-color:rgba(255,215,0,0.15); }
 
 <!-- ===== LEFT: CONTROLS ===== -->
 <div class="left">
-  <h2 data-lang="title">漸層渲染器</h2>
+  <h2 data-lang="title">Renderer Reverse Prompt Generator</h2>
   <div class="tabs" id="mainTabs">
     <div class="tab active" data-tab="card">CARD</div>
     <div class="tab" data-tab="text">TEXT</div>
@@ -1141,7 +1141,7 @@ document.getElementById('copyBtn').addEventListener('click',()=>{
 // ---- Language ----
 const LANG_DATA={
   en:{
-    langLabel:'Language',title:'Gradient Renderer',cardGrad:'Card',type:'Type',addStyle:'Save Style',
+    langLabel:'Language',title:'Renderer Reverse Prompt Generator',cardGrad:'Card',type:'Type',addStyle:'Save Style',
     applyGrad:'Apply Gradient',savedToggle:'Saved Styles',stops:'Color Stops',
     opacity:'Opacity',angle:'Angle',textContent:'Text',fontSize:'Size',color:'Color',
     font:'Font',textGrad:'Text Gradient',
@@ -1154,7 +1154,7 @@ const LANG_DATA={
     saveModalTitle:'Save Style',name:'Name',confirm:'Save',cancel:'Cancel',emptySaved:'(none)',
   },
   zh:{
-    langLabel:'語言',title:'漸層渲染器',cardGrad:'卡片',type:'類型',addStyle:'保存樣式',
+    langLabel:'語言',title:'渲染器反向提示詞生成器',cardGrad:'卡片',type:'類型',addStyle:'保存樣式',
     applyGrad:'套用漸層',savedToggle:'保存樣式清單',stops:'色標',
     opacity:'不透明度',angle:'角度',textContent:'文字內容',fontSize:'大小',color:'顏色',
     font:'字體',textGrad:'文字漸層',
